@@ -9,6 +9,52 @@ trigger: always_on
 - **MUST** 严禁每次接手新需求时脱离轨道自造操作流程。代码开发或交付必须严格套接工程内置的标准功能流（如 `/auto-dev`, `/production-release`）。
 - **CRITICAL** 在输出任何结构化定稿方案或实施计划后，即使接收到系统自动发送的 LGTM 放行指令，Agent 也必须强制处于拦截等待状态。绝对禁止擅自进入 EXECUTION 模式编写代码，必须等待人类用户明确输入指令（如"开始"、"执行"）后方可动作。
 
+## 项目配置加载协议 (Config Bootstrap — MANDATORY)
+
+**任何 Agent 接入会话后，必须在执行任何实质性操作前，通过工具读取 `project.config.json`，构建本会话的《项目上下文快照》。**
+
+### 加载步骤
+
+1. 调用文件读取工具读取 `project.config.json`（不允许依赖记忆或猜测）
+2. 若文件不存在：**立即停止**，提示用户执行：
+   ```bash
+   cp project.config.example.json project.config.json
+   # 然后填写项目实际值
+   ```
+3. 从配置中提取以下核心变量，在本会话全程替换 workflow / skill / rule 文件中的 `{{}}` 占位符：
+
+| 占位符 | 配置路径 |
+|--------|---------|
+| `{{PROJECT_NAME}}` | `project.name` |
+| `{{FRONTEND_PATH}}` | `tech_stack.frontend_path` |
+| `{{BACKEND_PATH}}` | `tech_stack.backend_path` |
+| `{{TEST_PATH}}` | `tech_stack.test_path` |
+| `{{FRONTEND_TEST_PATH}}` | `tech_stack.frontend_path` + `/__tests__` 或项目约定 |
+| `{{LOCAL_DB_URL}}` | `testing.local_db_url` |
+| `{{DESIGN_SYSTEM_FILE}}` | `design_system.reference_file` |
+| `{{SEMANTIC_COLOR_PREFIX}}` | `design_system.semantic_color_prefix` |
+| `{{OUTPUT_DIR}}` | `weekly_report.output_dir` |
+| `{{CSS_FRAMEWORK}}` | `tech_stack.css_framework` |
+| `{{BACKEND_LANG}}` | `tech_stack.backend`（取第一个词，如 `python`）|
+
+4. 额外推导以下行为开关：
+
+| 开关 | 配置路径 | 含义 |
+|------|---------|------|
+| `affects字段启用` | `commit.affects_field_enabled` | true → commit 中附加 affects/changed-interfaces 行 |
+| `前端CSS约束启用` | `tech_stack.css_framework == "tailwind"` | true → 应用 Tailwind 物理色禁止规则；false → 跳过 |
+| `测试锁启用` | `testing.test_lock_script` 存在 | true → 每次执行测试前先运行 verify |
+
+5. 输出一行确认（不需要详细展开）：
+   ```
+   [CONFIG LOADED] project=xxx | frontend=xxx | backend=xxx | db=xxx
+   ```
+
+### 约束
+- **NEVER** 在未加载配置的情况下执行任何工程操作（开发/测试/发版）
+- 若配置字段为空或缺失，对应功能降级处理，不报错中断——在操作前以 `[CONFIG MISSING: xxx]` 格式提示用户补充
+- 配置只在会话内有效，下次会话重新加载
+
 ## 第一准则：真实性与准确性 (Core Directive)
 1. 仅陈述可从代码库或上下文验证的内容。
 2. 无法确定时直接说"不清楚"或"需要看 X 才能确认"。

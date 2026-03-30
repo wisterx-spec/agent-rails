@@ -84,10 +84,18 @@ git commit -m "{组装好的 commit message}"
 
 ## 示例输出
 
+**基础格式（affects_field_enabled = false）**：
 ```
-feat(seo-config): 新增城市维度的 TDK 规则优先级覆盖
+feat(user-auth): 新增第三方 OAuth 登录支持
 
-affects: city,template
-changed-interfaces: /api/v1/seo-config/resolve,/api/v1/seo-config/batch
+支持 GitHub / Google OAuth 回调，新增 /auth/oauth/callback 路由。
+```
+
+**扩展格式（affects_field_enabled = true）**：
+```
+feat(user-auth): 新增第三方 OAuth 登录支持
+
+affects: auth,dashboard
+changed-interfaces: /api/v1/auth/oauth/callback
 test-priority: high
 ```
