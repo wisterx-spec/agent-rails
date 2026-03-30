@@ -71,7 +71,7 @@ trigger: always_on
 
 ## 领域规则预加载路由指引 (Rule Routing)
 在触碰以下工程域代码前，必须向知识库或**隐式调用文件读取工具**查阅指定的领域防御守则：
-- 涉及数据库 ORM 重构或数据库表变更时 → 读取 `.agents/rules/db.md`
+- 涉及数据库 ORM 重构或数据库表变更时 → 读取 `.agents/rules/db.md`（路由器，会根据 `tech_stack.database` 分发到 `db-mysql.md` 或 `db-sqlite.md`）
 - 涉及前端 UI 组件样式或状态时 → 读取 `.agents/rules/frontend-ui.md`
 - 涉及路由/调度任务/迁移/功能测试/自动化操作时 → 读取 `.agents/rules/guardrails.md`
 

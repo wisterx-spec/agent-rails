@@ -14,7 +14,7 @@
     "backend": "python+fastapi",
     "backend_path": "backend/app",
     "test_path": "backend/tests",
-    "database": "mysql",
+    "database": "mysql",    "_database_options": "可选值: mysql | sqlite | postgres",
     "orm": "sqlalchemy",
     "css_framework": "tailwind"
   },
