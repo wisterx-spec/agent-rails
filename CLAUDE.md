@@ -21,7 +21,10 @@
 |------|------|
 | `/dev-flow` | 新需求开发标准流程（8步闭合链） |
 | `/auto-dev [TODO内容]` | 一站式自动开发（Ralph-loop 模式） |
+| `/auto-dev resume` | 从中断点恢复上次未完成的自动开发 |
 | `/impact-analysis` | 变更爆炸半径排雷（Step 0-8 推演） |
+| `/pr-review` | 生成 PR 描述 + 自检清单 + 合并策略 |
+| `/hotfix [问题描述]` | 生产紧急修复（P0 专用精简流程） |
 | `/production-release` | 发版上线前检查 |
 | `/git-lifecycle` | Git 开发生命周期规范 |
 | `/weekly-report` | 自动生成开发周报 |

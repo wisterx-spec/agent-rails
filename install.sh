@@ -63,7 +63,29 @@ if [ -f "$GITIGNORE" ]; then
   fi
 fi
 
-# ── 7. 提示合并 CLAUDE.md ────────────────────────────────
+# ── 7. 创建 docs/ 知识库骨架（如不存在）──────────────────────
+TARGET_DOCS="$TARGET/docs"
+SRC_DOCS="$SCRIPT_DIR/docs"
+
+if [ ! -f "$TARGET_DOCS/INDEX.md" ]; then
+  mkdir -p "$TARGET_DOCS/lessons"
+  cp "$SRC_DOCS/INDEX.md" "$TARGET_DOCS/INDEX.md"
+  echo "  [+] Created docs/INDEX.md"
+else
+  echo "  [=] docs/INDEX.md already exists, skipping."
+fi
+
+for lesson in backend frontend testing; do
+  DEST="$TARGET_DOCS/lessons/${lesson}.md"
+  if [ ! -f "$DEST" ]; then
+    cp "$SRC_DOCS/lessons/${lesson}.md" "$DEST"
+    echo "  [+] Created docs/lessons/${lesson}.md"
+  else
+    echo "  [=] docs/lessons/${lesson}.md already exists, skipping."
+  fi
+done
+
+# ── 8. 提示合并 CLAUDE.md ────────────────────────────────
 TARGET_CLAUDE="$TARGET/CLAUDE.md"
 SRC_CLAUDE="$SCRIPT_DIR/CLAUDE.md"
 echo ""
@@ -83,6 +105,8 @@ echo ""
 echo "Next steps:"
 echo "  1. Edit $CONFIG with your project's paths, DB URL, and deploy settings"
 echo "  2. Review .agents/rules/ and customize constraints for your stack"
-echo "  3. Update .agents/workflows/production-release.md with your deploy platform"
-echo "  4. Start a new feature with: /dev-flow or /auto-dev [TODO]"
+echo "  3. Edit docs/INDEX.md with your project overview"
+echo "  4. Update .agents/workflows/production-release.md with your deploy platform"
+echo "  5. Start a new feature with: /dev-flow or /auto-dev [TODO]"
+echo "  6. Emergency fix: /hotfix [problem description]"
 echo ""

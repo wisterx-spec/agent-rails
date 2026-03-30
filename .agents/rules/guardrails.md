@@ -27,3 +27,22 @@
 ## 4. 前端操作红线
 - **NEVER** 在前端源码中硬编码环境地址（如 `localhost:8000` 或生产域名），必须通过环境变量注入。
 - **NEVER** 在 `git commit` 前保留 `console.log` 调试语句（`console.warn` / `console.error` 可保留）。
+
+## 5. 密钥与凭据安全红线 (Secrets & Credentials)
+
+- **NEVER** 将任何密钥、Token、密码、证书硬编码在源代码中，包括但不限于：
+  API Key、数据库密码、JWT Secret、第三方服务凭据、私钥文件。
+- **NEVER** 将含有真实凭据的文件（`.env`、`*.pem`、`*_key.json`）提交到 git，无论是公开还是私有仓库。
+- **MUST** 所有环境变量必须通过以下方式管理：
+  - 本地开发：`.env` 文件（**必须在 `.gitignore` 中**）
+  - CI/CD：平台的 Secret 管理功能（GitHub Secrets、GitLab CI Variables 等）
+  - 生产：容器环境变量注入或密钥管理服务（Vault、AWS Secrets Manager 等）
+- **MUST** `git commit` 前执行心理清单（或配置 pre-commit hook）：
+  - [ ] 有没有新增包含 `key`、`secret`、`password`、`token` 字样的变量赋值？
+  - [ ] 有没有新增 `.env` 文件？
+  - [ ] 有没有硬编码的 URL 中包含凭据（如 `mysql://user:pass@host`）？
+- **MUST** `project.config.json` 中的数据库密码等敏感字段，依赖 `.gitignore` 排除，
+  Agent 在任何输出或日志中不得完整打印此文件内容。
+
+> 如项目配置了 `pre-commit` 的 secret 扫描 hook（如 `detect-secrets`、`gitleaks`），
+> 触发拦截时必须认真处理，**禁止用 `--no-verify` 绕过**。
