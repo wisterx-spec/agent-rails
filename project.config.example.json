@@ -1,0 +1,73 @@
+{
+  "_comment": "复制此文件为 project.config.json 并填入项目实际值。project.config.json 已在 .gitignore 中排除。",
+
+  "project": {
+    "name": "my-project",
+    "description": "项目简述",
+    "root_path": "/path/to/project",
+    "tmp_dir": "tmp"
+  },
+
+  "tech_stack": {
+    "frontend": "react+typescript",
+    "frontend_path": "frontend/src",
+    "backend": "python+fastapi",
+    "backend_path": "backend/app",
+    "test_path": "backend/tests",
+    "database": "mysql",
+    "orm": "sqlalchemy",
+    "css_framework": "tailwind"
+  },
+
+  "team": {
+    "terminology": {
+      "frontend_alias": "前端",
+      "backend_alias": "后端"
+    },
+    "knowledge_base_path": "docs/lessons"
+  },
+
+  "testing": {
+    "local_db_url": "mysql+pymysql://root:password@127.0.0.1:3306/test_db",
+    "ci_db_url": "",
+    "test_lock_script": ".agents/scripts/test_lock.py",
+    "fast_mode_exclude_marks": "slow,performance",
+    "full_mode_exclude_marks": ""
+  },
+
+  "deploy": {
+    "platform": "custom",
+    "qa_env_name": "qa",
+    "prod_env_name": "production",
+    "tag_format": "v{YYYYMMDD-HHMM}-{description}",
+    "post_deploy_verify_endpoint": "/api/health",
+    "rollback_required": true
+  },
+
+  "commit": {
+    "affects_field_enabled": false,
+    "affects_field_description": "影响的业务模块（逗号分隔）",
+    "changed_interfaces_enabled": false
+  },
+
+  "llm_context": {
+    "core_doc": "docs/llm-context/llms-core.txt",
+    "backend_doc": "docs/llm-context/llms-domain-backend.txt",
+    "frontend_doc": "docs/llm-context/llms-domain-frontend.txt",
+    "max_lines": {
+      "core": 40,
+      "domain": 30
+    }
+  },
+
+  "design_system": {
+    "reference_file": "frontend/public/design-system.html",
+    "semantic_color_prefix": "bg-background-",
+    "forbidden_tailwind_colors": ["bg-slate-", "bg-blue-", "bg-gray-", "bg-red-", "bg-green-"]
+  },
+
+  "weekly_report": {
+    "output_dir": "tmp/weekly_reports",
+    "frontend_repo_path": ""
+  }
+}
