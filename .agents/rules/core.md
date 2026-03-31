@@ -29,7 +29,7 @@ trigger: always_on
 | `{{FRONTEND_PATH}}` | `tech_stack.frontend_path` |
 | `{{BACKEND_PATH}}` | `tech_stack.backend_path` |
 | `{{TEST_PATH}}` | `tech_stack.test_path` |
-| `{{FRONTEND_TEST_PATH}}` | `tech_stack.frontend_path` + `/__tests__` 或项目约定 |
+| `{{FRONTEND_TEST_PATH}}` | `tech_stack.frontend_test_path` |
 | `{{LOCAL_DB_URL}}` | `testing.local_db_url` |
 | `{{DESIGN_SYSTEM_FILE}}` | `design_system.reference_file` |
 | `{{SEMANTIC_COLOR_PREFIX}}` | `design_system.semantic_color_prefix` |
@@ -79,6 +79,32 @@ trigger: always_on
 为避免在高速生成时漏读领域规范，Agent 必须强制执行以下断点防御：
 1. **构建计划时校验 (Plan Validator)**：在生成实施计划时，必须包含独立的 `[Guardrail Validation: 前置规则验证]` 章节。要求在设计大纲前，必须用物理 `view_file` 工具读取相关领域规则文档，并在该段落内逐条对齐即将使用的 API 或类名是否合规。
 2. **写操作前宣誓 (Pre-write Oath)**：当修改项目源文件时，必须在指令中标明：`// Verified against .agents/rules/xxx.md`。如果意识到自己没有读过相关规则文件，**必须自我熔断操作并先去加载文件**。
+
+## 幻觉防控强制清单 (Anti-Hallucination Protocol)
+
+AI 最容易产生幻觉的 4 个场景，以下规则强制执行，不可跳过：
+
+### 1. 引用现有代码前必须先验证存在性
+- **MUST** 在代码中调用任何现有函数/类/变量前，先用工具搜索确认其定义存在（`grep` 函数名 / `glob` 文件路径）
+- **MUST** 在 import 语句中引用路径前，先确认该路径下文件实际存在
+- **NEVER** 凭记忆或"应该在这里"的假设直接写引用
+
+### 2. 调用 API 或接口前必须先读接口定义
+- **MUST** 编写调用方代码前，先读被调用方的函数签名或接口定义（参数名、类型、返回值）
+- **MUST** 对接第三方接口时，先读项目中已有的调用示例或 types 定义，而非依赖知识截止日期前的记忆
+- **NEVER** 假设 API 返回结构，必须从代码或文档中读取真实结构
+
+### 3. 编写测试 Mock 数据前必须先读真实数据结构
+- **MUST** 写 mock 数据前，先读对应的 ORM 模型定义或接口 response 类型
+- **MUST** 断言字段名必须与真实字段名完全一致，禁止凭感觉写 `user_id` 还是 `userId`
+- 验证方式：`grep "字段名" 模型文件` 确认拼写
+
+### 4. 修改文件前必须先读该文件当前状态
+- **MUST** 在 Edit 任何文件前，必须在本次会话内读过该文件（而非依赖上次会话的记忆）
+- **MUST** 对于超过 200 行的文件，修改前先确认要修改的具体行号区域
+- **NEVER** 在未读文件的情况下直接 Write 覆盖（除非是全新创建）
+
+> **自我熔断触发条件**：如果 AI 发现自己"不确定某个函数/字段/路径是否真实存在"，必须立即停止生成，先用工具验证，再继续。不允许带着不确定性继续写代码。
 
 ## 知识库写入权限红线 (Knowledge Write Protection)
 1. 任何 Agent 在任何流程中，**绝对禁止**自主修改以下目录下的文件：

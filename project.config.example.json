@@ -16,7 +16,9 @@
     "test_path": "backend/tests",
     "database": "mysql",    "_database_options": "可选值: mysql | sqlite | postgres",
     "orm": "sqlalchemy",
-    "css_framework": "tailwind"
+    "css_framework": "tailwind",
+    "frontend_test_path": "frontend/src/__tests__",  "_frontend_test_path_comment": "前端测试文件根目录，用于 frontend-tdd 工作流的 test_lock.py 基线扫描",
+    "frontend_extensions": ["tsx", "ts"],  "_frontend_extensions_comment": "前端源文件扩展名，用于 scan-frontend-quality 的 grep 扫描，可选值示例: tsx|vue|jsx|svelte"
   },
 
   "team": {

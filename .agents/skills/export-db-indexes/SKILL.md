@@ -47,9 +47,36 @@ ALTER TABLE user_info ADD COLUMN user_level TINYINT NOT NULL DEFAULT 0 COMMENT '
 ALTER TABLE user_info ADD INDEX idx_user_level (user_level);
 ```
 
-### Step 4：输出报告
+### Step 4：生成回滚 DDL
 
-将生成的 DDL 写入临时文件：`tmp/db_migration_{YYYYMMDD}.sql`
+对每条正向 DDL，同步生成对应的**回滚语句**，写入独立的回滚文件。
+
+**回滚规则**：
+
+| 正向操作 | 回滚操作 |
+|---------|---------|
+| `ADD COLUMN col` | `DROP COLUMN col` |
+| `ADD INDEX idx` | `DROP INDEX idx` |
+| `MODIFY COLUMN col TYPE_A → TYPE_B` | `MODIFY COLUMN col TYPE_A`（恢复原类型） |
+| `CREATE TABLE` | `DROP TABLE IF EXISTS` |
+
+**回滚文件格式**：
+```sql
+-- 回滚脚本：对应 db_migration_{YYYYMMDD}.sql
+-- 执行顺序：与正向 DDL 相反（后加的先回滚）
+
+-- [回滚] 删除索引 idx_user_level
+DROP INDEX idx_user_level ON user_info;
+
+-- [回滚] 删除字段 user_level
+ALTER TABLE user_info DROP COLUMN user_level;
+```
+
+### Step 5：输出报告
+
+将生成的 DDL 写入两个临时文件：
+- `tmp/db_migration_{YYYYMMDD}.sql` — 正向 DDL（上线用）
+- `tmp/db_rollback_{YYYYMMDD}.sql` — 回滚 DDL（回退用）
 
 并在对话中输出摘要：
 ```
@@ -60,9 +87,11 @@ ALTER TABLE user_info ADD INDEX idx_user_level (user_level);
 | user_info | 新增字段 | user_level (tinyint) |
 | order_record | 新增索引 | idx_status_created |
 
-DDL 文件已生成：tmp/db_migration_{YYYYMMDD}.sql
+正向 DDL：tmp/db_migration_{YYYYMMDD}.sql
+回滚 DDL：tmp/db_rollback_{YYYYMMDD}.sql
 
 ⚠️ 请交由 DBA Review 后在对应环境执行，严禁直接在生产执行未经 Review 的 DDL。
+⚠️ 回滚脚本请妥善保存，在上线后 24 小时内保持可执行状态。
 ```
 
 ---
@@ -71,5 +100,7 @@ DDL 文件已生成：tmp/db_migration_{YYYYMMDD}.sql
 
 - **MUST** 输出的 DDL 必须是 `ALTER TABLE` 格式，禁止输出 `DROP TABLE` 或 `CREATE TABLE`（除非是全新表）
 - **MUST** 每条 DDL 后必须附带真实 Query SQL 注释
+- **MUST** 同时生成正向 DDL 和回滚 DDL，缺少回滚文件视为未完成
 - **MUST** 写入 `tmp/` 目录，不得放在项目根目录
 - **NEVER** 在无 DBA Review 的情况下直接在生产数据库执行任何 DDL
+- **NEVER** 在回滚 DDL 中生成 `DROP TABLE`（除非正向操作是 CREATE TABLE，且表为新建）
