@@ -11,8 +11,8 @@ inputs:
     required: false
 outputs:
   - name: conventions_doc
-    destination: "对话输出（建议写入 docs/architecture/conventions.md 或 README.md）"
-    description: "文件命名/API/代码/Git 全局约定文档"
+    destination: "docs/conventions.md（固定路径，bootstrap 时创建，后续持续追加）"
+    description: "文件命名/API/代码/Git 全局约定文档，项目全程维护"
   - name: slimignore_content
     destination: ".slimignore 初始内容（供用户确认后写入）"
     description: "基于组件层级规划生成的初始豁免清单"
@@ -30,7 +30,17 @@ called_by:
 
 ## 执行步骤
 
-### Step 1：生成约定文档
+### Step 1：生成或追加约定文档
+
+**首次运行（bootstrap）**：按模板生成 `docs/conventions.md` 初稿，写入各分类初始约定。
+
+**增量追加（mid-project）**：在 `docs/conventions.md` 的「增量追加区」末尾添加新约定，格式：
+```
+- [YYYY-MM-DD] [模块] 约定内容 — 来源：需求/踩坑/讨论
+```
+**NEVER** 修改已有约定（只能追加），若需覆盖旧约定，在旧条目后注明 `→ 已被 [日期] 条目取代`。
+
+### Step 1-A：生成约定文档内容
 
 ```markdown
 ## 全局开发约定

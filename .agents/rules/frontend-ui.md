@@ -24,7 +24,23 @@
 - **MUST** 修改全局状态（如 Zustand store）之前，必须全局搜索该 store 的所有引用点，确认解构路径无隐式断裂。
 - **MUST** 删除 store 中的字段前，必须用全局搜索确认无任何组件依赖此字段。
 
-### 4. 禁止事项速查
+### 4. 增量组件复用强制检查
+
+每次准备新建组件前，**必须先执行复用检查**，不可跳过：
+
+1. 按类型 grep 现有组件目录（`{{FRONTEND_PATH}}/components/`）：
+   - Modal / Dialog 类 → 搜 `Modal`、`Dialog`
+   - Form 类 → 搜 `Form`、`Input`、`Field`
+   - Table / List 类 → 搜 `Table`、`List`、`DataTable`
+   - Card / Panel 类 → 搜 `Card`、`Panel`
+   - Button / Action 类 → 搜 `Button`、`Action`
+2. 列出候选复用组件
+3. **有候选** → 必须在方案中说明"为什么不复用而新建"，否则直接复用或扩展 props
+4. **无候选** → 正常新建，无需说明
+
+> 违反此规则等同于在项目中增加重复代码，视为规范违反。
+
+### 5. 禁止事项速查
 - 禁止裸 hex / rgb 颜色值（如 `color: #3b82f6`）
 - 禁止在组件内直接 `fetch`，必须走统一的 API 请求层
 - 禁止在非 `useEffect` 内发起副作用

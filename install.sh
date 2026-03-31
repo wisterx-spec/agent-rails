@@ -85,7 +85,45 @@ for lesson in backend frontend testing; do
   fi
 done
 
-# ── 8. 提示合并 CLAUDE.md ────────────────────────────────
+# ── 8. 创建 docs/conventions.md（活的约定文档）──────────────────
+CONVENTIONS_FILE="$TARGET_DOCS/conventions.md"
+if [ ! -f "$CONVENTIONS_FILE" ]; then
+  cp "$SRC_DOCS/conventions.md" "$CONVENTIONS_FILE"
+  echo "  [+] Created docs/conventions.md"
+else
+  echo "  [=] docs/conventions.md already exists, skipping."
+fi
+
+# ── 9. 创建 docs/decisions/ 架构决策记录骨架 ──────────────────
+DECISIONS_DIR="$TARGET_DOCS/decisions"
+if [ ! -d "$DECISIONS_DIR" ]; then
+  mkdir -p "$DECISIONS_DIR"
+  cp "$SRC_DOCS/decisions/README.md" "$DECISIONS_DIR/README.md"
+  cp "$SRC_DOCS/decisions/_template.md" "$DECISIONS_DIR/_template.md"
+  echo "  [+] Created docs/decisions/ with README.md and _template.md"
+else
+  echo "  [=] docs/decisions/ already exists, skipping."
+fi
+
+# ── 10. 安装 pre-commit git hook ─────────────────────────────
+GIT_DIR="$TARGET/.git"
+HOOK_SRC="$SCRIPT_DIR/.agents/hooks/pre-commit.sh"
+HOOK_DEST="$GIT_DIR/hooks/pre-commit"
+
+if [ -d "$GIT_DIR" ]; then
+  if [ ! -f "$HOOK_DEST" ]; then
+    cp "$HOOK_SRC" "$HOOK_DEST"
+    chmod +x "$HOOK_DEST"
+    echo "  [+] Installed pre-commit hook (.git/hooks/pre-commit)"
+  else
+    echo "  [!] pre-commit hook already exists, skipping."
+    echo "      To update manually: cp $HOOK_SRC $HOOK_DEST && chmod +x $HOOK_DEST"
+  fi
+else
+  echo "  [!] No .git directory found, skipping pre-commit hook installation."
+fi
+
+# ── 11. 提示合并 CLAUDE.md ────────────────────────────────
 TARGET_CLAUDE="$TARGET/CLAUDE.md"
 SRC_CLAUDE="$SCRIPT_DIR/CLAUDE.md"
 echo ""

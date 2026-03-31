@@ -86,6 +86,7 @@
 | Skill | 触发指令 | 作用 | 被哪些工作流调用 |
 |-------|---------|------|----------------|
 | `sync-llm-context` | `/sync-llm-context` | 刷新 LLM 上下文地图 | dev-flow Step 1（条件触发） |
+| `record-decision` | `/record-decision [topic]` | 将非显而易见的技术决策写入 `docs/decisions/` | auto-dev Phase 5（条件触发）、dev-flow Step 8 前（条件触发） |
 
 ---
 
@@ -103,7 +104,7 @@ project-bootstrap
 auto-dev
   ├─► requirement-clarification    (前置: 模糊需求时)
   └─► dev-flow
-        ├─► sync-llm-context      (条件: 新路由/大重构)
+        ├─► sync-llm-context        (条件: 新路由/大重构)
         ├─► impact-analysis
         │     └─► generate-test-from-impact
         ├─► generate-test-skeleton (条件: Test-First 场景)
@@ -167,5 +168,6 @@ hotfix
 | 扫描重型依赖 | `/scan-bundle-bloat` |
 | 一键项目瘦身 | `/slim` |
 | 刷新 AI 上下文 | `/sync-llm-context` |
+| 记录技术决策（ADR） | `/record-decision [topic]` |
 | 生产 P0 故障 | `/hotfix` |
 | 发版上线 | `/production-release` |

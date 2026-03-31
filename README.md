@@ -1,6 +1,10 @@
 # ai-dev-workflow
 
-一套可移植的 AI 辅助开发规范框架，基于 Claude Code。
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Platform: Claude Code](https://img.shields.io/badge/Platform-Claude_Code-blue)](https://claude.ai/code)
+[![Works with: GPT-4o](https://img.shields.io/badge/Works_with-GPT--4o-green)]()
+
+一套可移植的 AI 辅助开发规范框架。给 AI 套上约束和流程，让它在项目里持续可靠地工作。
 
 **设计原则：放在一起是流程，单独拿出来是 skill。**
 
@@ -8,17 +12,144 @@
 
 ---
 
-## 安装
+## 解决什么问题
+
+| 痛点 | 框架如何解决 |
+|------|------------|
+| 开发完才看到，和预期不符 | requirement-clarification 需求澄清 + Frontend-First，UI 确认后再开发后端 |
+| 新需求把老功能改坏 | impact-analysis 影响分析 + test-lock 测试基线保护 |
+| 项目没有规范，一个接口一套写法 | `docs/conventions.md` 活的约定文档，AI 每次任务前必读 |
+| 没有抽组件、重复造轮子 | 新建组件前强制 grep 现有同类，有候选必须说明为何不复用 |
+| 越改越乱，屎山越堆越大 | `/slim` 定期瘦身 + commit 前双重门禁 |
+| AI 产生幻觉，引用不存在的函数 | 4 场景幻觉防控强制清单，自我熔断机制 |
+
+---
+
+## 运行环境与模型要求
+
+### 硬性前提
+
+框架依赖 AI 的**文件读写工具（tool use）**，纯对话模式无法运行。最低要求：
+
+- 支持 tool use / function calling
+- 上下文窗口 ≥ 32K tokens
+
+### 推荐模型
+
+| 模型 | 适配程度 | 备注 |
+|------|---------|------|
+| Claude Sonnet 3.5 / 4+ | 完全适配 | 框架基于此设计，指令遵循与自我评估质量最佳 |
+| Claude Opus | 完全适配 | 适合更复杂任务，成本更高 |
+| GPT-4o | 基本可用 | 工具调用稳定，但需手动触发工作流（见平台适配） |
+| Gemini 1.5 Pro+ | 基本可用 | 类似 GPT-4o，需适配触发方式 |
+| 本地小模型（≤ 13B） | 不推荐 | 复杂指令遵循质量不足，Ralph-loop 可靠性低 |
+
+### 平台适配说明
+
+#### Claude Code（原生，推荐）
+
+框架为 Claude Code 设计，开箱即用：
+
+- `.agents/rules/` 中标注 `trigger: always_on` 的规则自动加载，无需手动触发
+- `/skill-name` slash command 直接触发对应 skill
+- 文件读写工具（Read / Edit / Grep / Glob / Bash）与框架约定完全匹配
 
 ```bash
-# 安装到当前项目
-./install.sh
+./install.sh /path/to/project   # 安装
+# 在 Claude Code 中打开项目目录即可使用
+```
 
-# 或安装到指定路径
+#### Cursor / Continue.dev / Windsurf
+
+可用，但需手动适配：
+
+1. 将 `.agents/rules/` 中的核心规则内容复制到平台的 System Prompt 或 `.cursorrules`
+2. 触发工作流时，直接在对话中输入工作流名称（如"执行 auto-dev 工作流"），而非 `/auto-dev`
+3. Skill 的 slash command 需替换为自然语言指令（如"执行 commit-with-affects skill"）
+4. 文件工具名称不同，AI 会自行映射，但建议验证 Read/Edit/Bash 是否可用
+
+```
+# 在 .cursorrules 或 system prompt 中添加：
+请在每次任务开始前读取 .agents/rules/core.md 中的规则。
+```
+
+#### 直接 API 调用（程序化使用）
+
+适合将框架嵌入自动化流水线：
+
+1. 将 `core.md`、`guardrails.md` 内容作为 system prompt
+2. 将目标 workflow 的 `.md` 内容作为 user prompt 的前置上下文
+3. 确保 API 调用启用了 tool use，并挂载文件读写工具
+4. 每次对话需重新加载规则（无 always_on 机制）
+
+#### 不适用的场景
+
+- 无 tool use 的纯对话 API 调用
+- GitHub Copilot（不支持自定义工作流规则注入）
+- 网页版 ChatGPT / Claude.ai（无项目级文件读取能力）
+
+---
+
+## 5 分钟快速上手
+
+### 1. 安装
+
+```bash
+git clone https://github.com/wisterx-spec/agent-rails.git
+cd ai-dev-workflow
 ./install.sh /path/to/your-project
 ```
 
-安装完成后，编辑 `project.config.json`，填写项目实际的路径、数据库地址、技术栈信息。
+### 2. 最小配置
+
+编辑目标项目的 `project.config.json`，至少填写以下字段：
+
+```jsonc
+{
+  "project": { "name": "your-project" },
+  "tech_stack": {
+    "frontend": "react+typescript",
+    "frontend_path": "frontend/src",
+    "backend": "python+fastapi",
+    "backend_path": "backend/app",
+    "test_path": "backend/tests",
+    "database": "mysql"          // mysql | sqlite | postgres
+  },
+  "testing": {
+    "local_db_url": "mysql+pymysql://user:pass@localhost:3306/test_db"
+  }
+}
+```
+
+其余字段可按需补充，缺失字段会降级处理，不影响启动。
+
+### 3. 在 Claude Code 中使用
+
+用 Claude Code 打开项目目录，输入第一个指令：
+
+```
+/requirement-clarification  ← 从需求澄清开始（推荐）
+```
+
+或直接开始开发：
+
+```
+/auto-dev 实现用户登录功能，支持邮箱+密码
+```
+
+### 4. 预期看到什么
+
+```
+[CONFIG LOADED] project=your-project | frontend=react+typescript | backend=python+fastapi | db=mysql
+
+阶段零：规范预加载
+→ 读取 docs/conventions.md 核心约定速查区块
+→ 读取 docs/decisions/README.md 索引（命中 0 条决策）
+→ 路由加载：commit-with-affects/SKILL.md
+→ 生成《规范快照》（共 12 行）
+
+[SPEC LOADED] 技术层: 前端+后端 | 禁止项: 3 条 | token定义: tailwind.config.js
+```
 
 ---
 
@@ -77,6 +208,10 @@
       scan-bundle-bloat/          — 重型依赖优化建议
     知识管理类：
       sync-llm-context/           — 刷新 AI 上下文地图
+      record-decision/            — 写入架构决策记录（ADR）
+
+  hooks/
+    pre-commit.sh   # git pre-commit hook 模板（install.sh 自动写入 .git/hooks/）
 
   scripts/
     test_lock.py    # 测试基线防篡改工具（lock / verify / status）
@@ -85,6 +220,10 @@
 
 docs/
   INDEX.md              # 项目知识地图（AI 入场必读）
+  conventions.md        # 活的约定文档（bootstrap 生成，全程追加，AI 每次必读）
+  decisions/
+    README.md           # ADR 索引表（AI 路由用）
+    _template.md        # 决策记录模板
   lessons/
     backend.md          # 后端踩坑记录
     frontend.md         # 前端踩坑记录
@@ -131,6 +270,48 @@ project.config.example.json
 | `/scan-dead-routes` | 仅扫死路由 |
 | `/scan-unused-exports` | 仅扫未引用导出 |
 | `/scan-bundle-bloat` | 仅扫重型依赖 |
+
+---
+
+## 框架如何约束 AI（示例）
+
+以下是 `auto-dev` 工作流中，框架拦截 AI 行为的真实例子：
+
+**场景：AI 准备新建一个 Modal 组件**
+
+没有框架时，AI 直接写新组件。有框架后：
+
+```
+[组件复用检查]
+grep {{FRONTEND_PATH}}/components/ Modal Dialog...
+找到候选：
+  - components/common/Modal.tsx（已有，支持 title/footer/width props）
+  - components/common/DeleteConfirmModal.tsx（继承自 Modal）
+
+→ 本次任务复用 Modal.tsx，扩展 onConfirm prop，不新建组件。
+```
+
+**场景：AI 准备提交代码**
+
+```
+[Step 0-A] scan-code-hygiene --scope=staged
+P0 问题：0 个
+P1 问题：2 个
+  - frontend/src/pages/UserPage.tsx:47  console.log("debug user data")
+  - backend/app/routers/auth.py:23      # TODO: 添加速率限制
+
+→ 允许提交，commit message 附加 known-issues: console.log×1, TODO×1
+```
+
+**场景：AI 发现决策记录**
+
+```
+[决策预读] docs/decisions/README.md
+命中 1 条决策：jwt-auth-strategy.md（affects: backend/app/routers/auth/）
+QUICK: NEVER 换成 Session Cookie | NEVER token 存 localStorage | NEVER TTL 超 2 小时
+
+→ 禁止事项已加入规范快照，后续修改 auth 模块时自动约束。
+```
 
 ---
 

@@ -30,7 +30,9 @@
 | `{{BACKEND_PATH}}` | 后端源码 |
 | `{{TEST_PATH}}` | 测试文件 |
 | `.agents/` | AI 工作流框架 |
+| `docs/conventions.md` | 项目开发约定（活的规范，全程维护） |
 | `docs/lessons/` | 开发经验积累（血泪教训库） |
+| `docs/decisions/` | 架构决策记录（ADR，为什么这样设计） |
 | `tmp/` | 临时文件（不进 git） |
 
 ## 开发流程入口

@@ -74,6 +74,7 @@ trigger: always_on
 - 涉及数据库 ORM 重构或数据库表变更时 → 读取 `.agents/rules/db.md`（路由器，会根据 `tech_stack.database` 分发到 `db-mysql.md` 或 `db-sqlite.md`）
 - 涉及前端 UI 组件样式或状态时 → 读取 `.agents/rules/frontend-ui.md`
 - 涉及路由/调度任务/迁移/功能测试/自动化操作时 → 读取 `.agents/rules/guardrails.md`
+- **接触任何代码模块前**，先查阅 `docs/decisions/README.md` 索引表；若该模块路径命中某条决策记录的 `affects` 字段，必须先读取对应决策文件，再动手修改
 
 ## 领域防御硬拦截协议 (Hard Guardrails for AI Execution)
 为避免在高速生成时漏读领域规范，Agent 必须强制执行以下断点防御：

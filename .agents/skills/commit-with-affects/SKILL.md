@@ -12,12 +12,21 @@ description: 生成结构化 git commit message，自动分析 diff 计算影响
 
 ## 执行步骤
 
-### Step 0：运行本地测试检查 (Pre-commit Validation)
+### Step 0：代码卫生强制门禁 (Pre-commit Gate)
 
-在分析改动并生成 commit message 之前，**必须**首先调用 `run-backend-tests` 技能执行测试以确保代码健康：
+在分析改动并生成 commit message 之前，**必须按顺序执行以下两项检查**：
 
-1. **建议模式**：运行快速子集（`/run-backend-tests --mode fast`）验证核心逻辑。
-2. **拦截规则**：如果测试返回失败状态（存在 error 或 failure），**严禁**继续执行后续的 commit 步骤。必须明确中断流程，并提示用户修复错误后再尝试提交代码。
+**0-A：规范扫描（强制，不可跳过）**
+
+调用 `scan-code-hygiene --scope=staged`：
+- **P0 问题**（hardcoded secrets、hardcoded env URL）：**立即中断**，必须修复后重新提交，不可绕过
+- **P1 问题**（console.log、TODO、调试代码）：允许提交，但必须在 commit message body 中以 `known-issues:` 字段列出
+
+**0-B：测试验证（强制，不可跳过）**
+
+调用 `run-tests --mode=fast` 验证核心逻辑：
+- 测试失败 → **立即中断**，必须修复后重新执行
+- 测试通过 → 继续
 
 ### Step 1：分析本次改动
 
