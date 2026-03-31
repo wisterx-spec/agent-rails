@@ -28,24 +28,13 @@ git log --oneline origin/main..HEAD
 
 ## 第二步：代码卫生扫描
 
-```bash
-# 占位域名扫描
-grep -rn "example\.com" {{FRONTEND_PATH}} --include="*.tsx" --include="*.ts" | grep -v "placeholder=" | grep -v "^\s*//"
+调用 `scan-code-hygiene` skill（`--scope=all`）。
+→ 输出：调试语句 / TODO / 硬编码地址 / 潜在密钥 问题报告。
 
-# localhost 硬编码扫描
-grep -rn "localhost" {{FRONTEND_PATH}} --include="*.tsx" --include="*.ts" | grep -v "// " | grep -v "proxy" | grep -v ".env"
+> 单独执行：`/scan-code-hygiene --scope=all`
 
-# console.log 残留扫描
-grep -rn "console\.log" {{FRONTEND_PATH}} --include="*.tsx" --include="*.ts" | grep -v "^\s*//"
-
-# FIXME 注释扫描
-grep -rn "FIXME" {{BACKEND_PATH}} {{FRONTEND_PATH}}
-```
-
-> 将 `{{FRONTEND_PATH}}` 和 `{{BACKEND_PATH}}` 替换为 `project.config.json` 中的 `tech_stack.frontend_path` 和 `tech_stack.backend_path`。
-
-🔴 **Blocker**：业务组件/页面逻辑中发现 `example.com`（非 mock/注释）
-🟡 **警告**：有 `console.log` 或 `FIXME` → 询问用户是否豁免
+🔴 **Blocker**：任何 🔴 高严重性问题（硬编码地址、密钥、console.log）→ 必须修复后才能继续
+🟡 **警告**：TODO/FIXME → 询问用户是否豁免
 
 ---
 

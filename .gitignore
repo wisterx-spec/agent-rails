@@ -2,3 +2,4 @@ tmp/
 .DS_Store
 *.pyc
 __pycache__/
+.agent-testlock.json

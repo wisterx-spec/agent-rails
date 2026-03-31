@@ -6,7 +6,7 @@
 |--------|---------|
 | `mysql` | `.agents/rules/db-mysql.md` |
 | `sqlite` | `.agents/rules/db-sqlite.md` |
-| `postgres` / `postgresql` | `.agents/rules/db-postgres.md`（暂未提供，使用通用原则） |
+| `postgres` / `postgresql` | `.agents/rules/db-postgres.md` |
 | 其他 / 未配置 | 使用下方通用原则 |
 
 **强制要求**：读到数据库类型后，必须通过工具物理读取对应规范文件，不允许凭记忆执行。
