@@ -6,6 +6,25 @@
 
 Opinionated workflow framework for AI-assisted development — rules, skills & guardrails that keep LLMs reliable across a full project lifecycle.
 
+---
+
+## Why This Exists
+
+AI coding assistants are fast. They're also amnesiac, inconsistent, and oblivious to project history.
+
+You've probably experienced this: you describe a feature, the AI writes it, and only when you look at the result do you realize it built the wrong thing. Or it silently broke something that was working. Or it created a third version of a component that already existed twice. Or it ignored the conventions your team spent weeks establishing.
+
+The root problem isn't the AI's coding ability — it's that **the AI has no reliable structure to operate within**. Every session starts from scratch. There are no guardrails, no memory, no checkpoints where a human can catch drift before it compounds.
+
+agent-rails solves this by giving the AI a framework to work inside:
+
+- **Rules** that load automatically and constrain what the AI can do
+- **Workflows** that enforce checkpoints, require human sign-off at the right moments, and prevent the AI from skipping steps
+- **Skills** that are atomic, independently verifiable, and composable into larger flows
+- **Knowledge files** that accumulate project-specific context across sessions — conventions, decisions, lessons learned
+
+The result is an AI that asks before assuming, checks before committing, and builds on what already exists instead of reinventing it.
+
 **Design principle: together it's a workflow, alone it's a skill.**
 
 Every workflow is composed of independent skills. Skills can also be invoked standalone. The framework is project-agnostic — inject your project specifics via `project.config.json` and it's ready to use.
