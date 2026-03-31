@@ -2,37 +2,37 @@
 
 ## v1.0.0 — 2026-03-31
 
-### 初始发布
+### Initial Release
 
-**三层架构**
-- Rules（始终加载）：core、guardrails、frontend-ui、db 系列
-- Workflows（按需触发）：11 个工作流，覆盖全栈开发全生命周期
-- Skills（原子工具）：14 个可独立调用的 skill
+**Three-layer architecture**
+- Rules (always-on): core, guardrails, frontend-ui, db series
+- Workflows (on-demand): 11 workflows covering the full development lifecycle
+- Skills (atomic tools): 14 independently callable skills
 
-**核心工作流**
-- `requirement-clarification`：需求澄清 → 规格确认书
-- `auto-dev`：全自动开发，内置 Ralph-loop 自优化，支持 resume
-- `dev-flow`：人工驱动开发
-- `frontend-tdd`：Component-TDD + UX 评估卡点
-- `project-bootstrap`：0-1 项目架构规划
-- `slim`：项目瘦身（孤儿组件/死路由/未引用导出/重型依赖）
-- `production-release`：发版前检查 + 打 tag
+**Core workflows**
+- `requirement-clarification` — structured Q&A → spec sign-off before any coding
+- `auto-dev` — fully automated development with Ralph-loop self-optimization, supports resume
+- `dev-flow` — human-driven development for exploratory scenarios
+- `frontend-tdd` — Component-TDD with mandatory UX evaluation gate
+- `project-bootstrap` — 0-to-1 project architecture planning
+- `slim` — project cleanup (orphan components / dead routes / unused exports / bundle bloat)
+- `production-release` — pre-release checks + tag
 
-**质量保障机制**
-- 测试基线保护（test_lock.py）
-- 提交前双重门禁（scan-code-hygiene + pre-commit hook）
-- 幻觉防控强制清单（4 场景硬约束）
-- 增量组件复用检查
+**Quality guardrails**
+- Test baseline protection (`test_lock.py`) — SHA-256 lock on test assertions
+- Pre-commit double gate: `scan-code-hygiene` (AI layer) + git hook (fallback)
+- Anti-hallucination protocol — 4 mandatory hard stops
+- Incremental component reuse check — grep before creating new components
 
-**知识管理**
-- `docs/conventions.md`：活的约定文档，全程维护
-- `docs/decisions/`：架构决策记录（ADR）
-- `docs/lessons/`：踩坑经验积累
-- `[KNOWLEDGE_UPDATE]` / `[CONVENTION_PROPOSAL]` 机制
+**Knowledge management**
+- `docs/conventions.md` — living conventions doc, maintained throughout the project
+- `docs/decisions/` — Architecture Decision Records (ADR) with AI routing
+- `docs/lessons/` — accumulated lessons from the project
+- `[KNOWLEDGE_UPDATE]` / `[CONVENTION_PROPOSAL]` proposal mechanisms
 
-**Token 优化**
-- 规范快照封存协议（Phase 0 一次加载，全程引用）
-- SKILL.md 按需路由加载
-- conventions.md 分区读取（只读核心约定速查区块）
-- ADR QUICK 行（单行禁止事项摘要）
-- Session 文件滚动保留（最近 3 轮）
+**Token optimization**
+- Snapshot seal protocol — load once in Phase 0, reference throughout
+- SKILL.md on-demand routing — only load what the task needs
+- `conventions.md` section routing — only read the "Quick Reference" block
+- ADR QUICK line — single-line NEVER summary per decision file
+- Session file rolling window — keep last 3 rounds only

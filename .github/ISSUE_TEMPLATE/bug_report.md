@@ -1,30 +1,30 @@
 ---
 name: Bug report
-about: 某个 workflow / skill 行为不符合预期
+about: A workflow or skill behaves unexpectedly
 title: '[BUG] '
 labels: bug
 assignees: ''
 ---
 
-## 问题描述
+## Description
 
-<!-- 简短描述发生了什么 -->
+<!-- Brief description of what happened -->
 
-## 涉及的 Workflow / Skill
+## Affected Workflow / Skill
 
-<!-- 例如：auto-dev Phase 3 / commit-with-affects / frontend-ui.md 规则 -->
+<!-- e.g. auto-dev Phase 3 / commit-with-affects / frontend-ui.md rule -->
 
-## 复现步骤
+## Steps to Reproduce
 
-1. 使用的模型和平台（如 Claude Sonnet 4 + Claude Code）
-2. 触发指令
-3. 实际行为
-4. 预期行为
+1. Model and platform (e.g. Claude Sonnet 4 + Claude Code)
+2. Trigger command used
+3. Actual behavior
+4. Expected behavior
 
-## 相关文件内容（可选）
+## Relevant File Content (optional)
 
-<!-- 如果是规则描述有歧义，粘贴相关段落 -->
+<!-- If a rule description is ambiguous, paste the relevant section -->
 
-## 补充信息
+## Additional Context
 
-<!-- project.config.json 中的 tech_stack 配置（去掉敏感信息） -->
+<!-- tech_stack config from project.config.json (remove sensitive values) -->
