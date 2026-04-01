@@ -123,7 +123,22 @@ else
   echo "  [!] No .git directory found, skipping pre-commit hook installation."
 fi
 
-# ── 11. 提示合并 CLAUDE.md ────────────────────────────────
+# ── 11. 复制 .claude/commands/ 目录（Claude Code slash commands）──
+TARGET_COMMANDS="$TARGET/.claude/commands"
+SRC_COMMANDS="$SCRIPT_DIR/.claude/commands"
+
+if [ -d "$SRC_COMMANDS" ]; then
+  if [ ! -d "$TARGET_COMMANDS" ]; then
+    mkdir -p "$TARGET_COMMANDS"
+    cp "$SRC_COMMANDS"/*.md "$TARGET_COMMANDS/"
+    echo "  [+] Copied .claude/commands/ (Claude Code slash commands)"
+  else
+    echo "  [!] .claude/commands/ already exists in target. Skipping to avoid overwrite."
+    echo "      To update manually: cp $SRC_COMMANDS/*.md $TARGET_COMMANDS/"
+  fi
+fi
+
+# ── 12. 提示合并 CLAUDE.md ────────────────────────────────
 TARGET_CLAUDE="$TARGET/CLAUDE.md"
 SRC_CLAUDE="$SCRIPT_DIR/CLAUDE.md"
 echo ""

@@ -70,12 +70,12 @@ The framework depends on the AI's **file read/write tools (tool use)**. Pure cha
 Built for Claude Code — works out of the box:
 
 - Rules in `.agents/rules/` marked `trigger: always_on` are loaded automatically
-- `/skill-name` slash commands trigger skills directly
+- `.claude/commands/` provides native slash commands — type `/auto-dev`, `/pr-review`, etc. directly in Claude Code
 - File tools (Read / Edit / Grep / Glob / Bash) match the framework's conventions exactly
 
 ```bash
 ./install.sh /path/to/project   # install
-# Open project directory in Claude Code and start
+# Open project directory in Claude Code and start with /auto-dev or /dev-flow
 ```
 
 #### Cursor / Continue.dev / Windsurf
@@ -235,6 +235,21 @@ Phase 0: Pre-read
     test_lock.py    # test baseline tamper protection (lock / verify / status)
 
   SKILL_INDEX.md  # skill registry (workflow overview + full dependency graph + quick-find)
+
+.claude/
+  commands/       # Claude Code slash commands (auto-installed)
+    auto-dev.md           — /auto-dev trigger
+    dev-flow.md           — /dev-flow trigger
+    hotfix.md             — /hotfix trigger
+    impact-analysis.md    — /impact-analysis trigger
+    pr-review.md          — /pr-review trigger
+    production-release.md — /production-release trigger
+    project-bootstrap.md  — /project-bootstrap trigger
+    requirement-clarification.md — /requirement-clarification trigger
+    slim.md               — /slim trigger
+    sync-llm-context.md   — /sync-llm-context trigger
+    weekly-report.md      — /weekly-report trigger
+    git-lifecycle.md      — /git-lifecycle trigger
 
 docs/
   INDEX.md              # project knowledge map (AI reads this first)
