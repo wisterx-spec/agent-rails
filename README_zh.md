@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-![工作流概览](./docs/flow-overview.png)
+![工作流概览](./docs/flow-overview_zh.png)
 
 AI 辅助开发的约束框架 —— 规则、技能与护栏，让大模型在整个项目生命周期中稳定输出。
 
@@ -201,7 +201,7 @@ Phase 0: Pre-read
 上线完成
 ```
 
-详细流程图见 [`docs/flow-overview.md`](docs/flow-overview.md)（含 Mermaid 源码）和 [`docs/flow-overview.png`](docs/flow-overview.png)。
+详细流程图见 [`docs/flow-overview_zh.md`](docs/flow-overview_zh.md)（含 Mermaid 源码）和 [`docs/flow-overview_zh.png`](docs/flow-overview_zh.png)。
 
 ### 人工卡点一览
 
@@ -270,8 +270,8 @@ docs/
   conventions.md          — 活的项目约定（持续维护）
   decisions/              — 架构决策记录（ADR）
   lessons/                — 项目踩坑经验（backend / frontend / testing）
-  flow-overview.md        — 完整流程图（Mermaid 源码）
-  flow-overview.png       — 完整流程图（图片）
+  flow-overview_zh.md     — 完整流程图（Mermaid 源码）
+  flow-overview_zh.png    — 完整流程图（图片）
 
 project.config.json       — 项目配置（不提交）
 ```
