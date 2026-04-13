@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-![Flow Overview](./docs/flow-overview.png)
+![Flow Overview](./docs/flow-overview.svg)
 
 Constraint framework for AI-assisted development — rules, skills & guardrails that keep LLMs reliable across a full project lifecycle.
 
@@ -210,7 +210,7 @@ Verification → Structured report → 🔴 Human confirms
 Live
 ```
 
-Detailed flowchart: [`docs/flow-overview.md`](docs/flow-overview.md) (Mermaid source) and [`docs/flow-overview.png`](docs/flow-overview.png).
+Detailed flowchart: [`docs/flow-overview.md`](docs/flow-overview.md) (Mermaid source) and [`docs/flow-overview.svg`](docs/flow-overview.svg).
 
 ### Human Checkpoints
 
@@ -280,7 +280,7 @@ docs/
   decisions/              — Architecture Decision Records (ADR)
   lessons/                — Project lessons learned (backend / frontend / testing)
   flow-overview.md        — Full pipeline flowchart (Mermaid source)
-  flow-overview.png       — Full pipeline flowchart (image)
+  flow-overview.svg       — Full pipeline flowchart (image)
 
 project.config.json       — Project config (not committed)
 ```
