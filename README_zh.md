@@ -1,5 +1,7 @@
 # agent-rails
 
+[English](README.md) | [简体中文](README_zh.md)
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ![工作流概览](./docs/flow-overview_zh.png)
