@@ -1,8 +1,6 @@
 # agent-rails
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Platform: Claude Code](https://img.shields.io/badge/Platform-Claude_Code-blue)](https://claude.ai/code)
-[![Works with: GPT-4o](https://img.shields.io/badge/Works_with-GPT--4o-green)]()
 
 Opinionated workflow framework for AI-assisted development — rules, skills & guardrails that keep LLMs reliable across a full project lifecycle.
 
@@ -57,25 +55,25 @@ The framework depends on the AI's **file read/write tools (tool use)**. Pure cha
 
 | Model | Compatibility | Notes |
 |-------|--------------|-------|
-| Claude Sonnet 3.5 / 4+ | Full | Framework designed for this — best instruction-following and self-evaluation |
-| Claude Opus | Full | Better for complex tasks, higher cost |
+| Premium LLMs (e.g., Sonnet 3.5+, GPT-4o) | Full | Framework designed for this class — best instruction-following and self-evaluation |
+| Advanced Reasoning Models | Full | Better for complex tasks, higher cost |
 | GPT-4o | Mostly works | Stable tool use, but workflows must be triggered manually (see platform notes) |
 | Gemini 1.5 Pro+ | Mostly works | Same as GPT-4o, requires trigger adaptation |
 | Local small models (≤ 13B) | Not recommended | Complex instruction-following quality insufficient, Ralph-loop unreliable |
 
 ### Platform Notes
 
-#### Claude Code (native, recommended)
+#### Native AI Agents (Recommended)
 
-Built for Claude Code — works out of the box:
+Works out of the box for agentic environments with tool-use (e.g., Roo Code, Antigravity, Cursor):
 
 - Rules in `.agents/rules/` marked `trigger: always_on` are loaded automatically
 - `/skill-name` slash commands trigger skills directly
-- File tools (Read / Edit / Grep / Glob / Bash) match the framework's conventions exactly
+- File tools (Read / Edit / Grep / Bash) match the framework's conventions exactly
 
 ```bash
 ./install.sh /path/to/project   # install
-# Open project directory in Claude Code and start
+# Open project directory in your AI Assistant and start
 ```
 
 #### Cursor / Continue.dev / Windsurf
@@ -105,7 +103,7 @@ For embedding the framework in automation pipelines:
 
 - Pure chat API calls without tool use
 - GitHub Copilot (no custom workflow rule injection)
-- Web-based ChatGPT / Claude.ai (no project-level file access)
+- Web-based chat interfaces (no project-level file access)
 
 ---
 
@@ -143,7 +141,7 @@ Missing fields degrade gracefully — they won't block startup.
 
 ### 3. First Command
 
-Open the project directory in Claude Code and type:
+Open the project directory in your AI assistant and type:
 
 ```
 /requirement-clarification   ← start here for new features (recommended)

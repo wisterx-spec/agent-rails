@@ -1,3 +1,10 @@
+---
+name: frontend-dev-guide
+description: 前端开发约束与规范。修改前端 UI 组件、样式或状态代码前必读。
+trigger: /frontend-dev-guide
+standalone: true
+---
+
 # 前端 UI 开发规范 (Frontend UI Rules)
 
 编写或修改前端 `{{FRONTEND_PATH}}` 中的 TSX 或 CSS 样式代码时，严禁散写硬编码类名。

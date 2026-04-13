@@ -81,12 +81,31 @@
 | `scan-unused-exports` | `/scan-unused-exports` | 扫描未被 import 的导出 | slim Phase 3 |
 | `scan-bundle-bloat` | `/scan-bundle-bloat` | 扫描重型依赖和可替代方案 | slim Phase 4 |
 
+### 方案评审类
+
+| Skill | 触发指令 | 作用 | 被哪些工作流调用 |
+|-------|---------|------|----------------|
+| `proposal-review` | `/proposal-review` | 强制将实现方案翻译成人类可判断的语言，生成评审文档并等待人工确认 | dev-flow Step 3（条件触发）、auto-dev Phase 2 |
+
+### 规范治理类
+
+| Skill | 触发指令 | 作用 | 被哪些工作流调用 |
+|-------|---------|------|----------------|
+| `review-guardrails` | `/review-guardrails` | 审查 conventions/lessons/decisions/guide skills 的时效性、冲突、冗余、覆盖缺口 | slim（可选）、auto-dev Phase 5（STALE 触发时） |
+
+### 领域规范类（按需加载，不注入 system prompt）
+
+| Skill | 触发指令 | 作用 | 被哪些工作流调用 |
+|-------|---------|------|----------------|
+| `frontend-dev-guide` | `/frontend-dev-guide` | 前端 UI 开发约束与规范（色彩、组件复用、状态管理） | dev-flow Step 2、auto-dev Phase 0 |
+| `db-dev-guide` | `/db-dev-guide` | 数据库开发约束与规范（MySQL/SQLite/PostgreSQL） | dev-flow Step 2、auto-dev Phase 0 |
+
 ### 知识管理类
 
 | Skill | 触发指令 | 作用 | 被哪些工作流调用 |
 |-------|---------|------|----------------|
 | `sync-llm-context` | `/sync-llm-context` | 刷新 LLM 上下文地图 | dev-flow Step 1（条件触发） |
-| `record-decision` | `/record-decision [topic]` | 将非显而易见的技术决策写入 `docs/decisions/` | auto-dev Phase 5（条件触发）、dev-flow Step 8 前（条件触发） |
+| `record-decision` | `/record-decision [topic]` | 将非显而易见的技术决策写入 `docs/decisions/` | auto-dev Phase 5（条件触发）、dev-flow Step 9 前（条件触发） |
 
 ---
 
@@ -103,8 +122,10 @@ project-bootstrap
 
 auto-dev
   ├─► requirement-clarification    (前置: 模糊需求时)
+  ├─► proposal-review              (Phase 2: 方案评审 → 人工确认)
   └─► dev-flow
         ├─► sync-llm-context        (条件: 新路由/大重构)
+        ├─► proposal-review          (条件: 非轻量任务)
         ├─► impact-analysis
         │     └─► generate-test-from-impact
         ├─► generate-test-skeleton (条件: Test-First 场景)
@@ -147,6 +168,10 @@ hotfix
 | 我想要... | 用这个 |
 |---------|-------|
 | 讨论并澄清需求 | `requirement-clarification` |
+| 评审实现方案（人工卡点） | `/proposal-review` |
+| 审查规范健康度（过期/冲突/冗余） | `/review-guardrails` |
+| 查看前端开发规范 | `/frontend-dev-guide` |
+| 查看数据库开发规范 | `/db-dev-guide` |
 | 全新项目架构规划 | `project-bootstrap` |
 | 只做技术栈选型 | `/advise-tech-stack` |
 | 只规划页面结构 | `/plan-page-map` |

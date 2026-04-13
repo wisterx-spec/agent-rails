@@ -38,7 +38,7 @@ grep -rn "localhost:\|127\.0\.0\.1\|硬编码域名" 变更文件列表
 ```
 
 **规范符合性**（条件执行）：
-- 有数据库文件变更 → 读取 `.agents/rules/db.md` 并逐条验证
+- 有数据库文件变更 → 读取 `db-dev-guide` skill（`.agents/skills/db-dev-guide/SKILL.md`）并逐条验证
 - 有前端文件变更 → 检查 Tailwind 物理色、裸 hex（若 css_framework=tailwind）
 - 有 commit message → 验证格式是否符合 `commit-with-affects` 规范
 

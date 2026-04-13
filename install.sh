@@ -123,18 +123,7 @@ else
   echo "  [!] No .git directory found, skipping pre-commit hook installation."
 fi
 
-# ── 11. 提示合并 CLAUDE.md ────────────────────────────────
-TARGET_CLAUDE="$TARGET/CLAUDE.md"
-SRC_CLAUDE="$SCRIPT_DIR/CLAUDE.md"
-echo ""
-if [ -f "$TARGET_CLAUDE" ]; then
-  echo "  [!] CLAUDE.md already exists in target."
-  echo "      Please manually merge the relevant sections from:"
-  echo "      $SRC_CLAUDE"
-else
-  cp "$SRC_CLAUDE" "$TARGET_CLAUDE"
-  echo "  [+] Copied CLAUDE.md to $TARGET/"
-fi
+
 
 # ── 完成 ─────────────────────────────────────────────────
 echo ""
