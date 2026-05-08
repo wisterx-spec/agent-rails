@@ -49,9 +49,9 @@ git checkout -b hotfix/YYYYMMDD-{问题简述}
 仅针对受影响的模块运行测试，而非全量：
 
 ```bash
-# 示例：只跑与故障模块相关的测试文件
-cd {{BACKEND_PATH}} && TEST_DATABASE_URL='{{LOCAL_DB_URL}}' \
-  python -m pytest tests/test_{affected_module}.py -v
+PYTHONPATH="{{BACKEND_PATH}}${PYTHONPATH:+:$PYTHONPATH}" \
+TEST_DATABASE_URL='{{LOCAL_DB_URL}}' \
+  python -m pytest {{TEST_PATH}}/test_{affected_module}.py -v
 ```
 
 > 若修复涉及数据库查询，必须在测试库验证 SQL 正确性后再提交。
@@ -91,7 +91,7 @@ git push origin hotfix/YYYYMMDD-{问题简述}
 ## Step 6：紧急发版
 
 直接触发 `/production-release`，但**跳过以下步骤**：
-- ~~第三步：后端测试验证~~（已在 Step 3 针对性验证）
+- ~~第三步：测试验证~~（已在 Step 3 针对性验证）
 - ~~第四步：数据库差异化导出~~（如无 schema 变更）
 
 其余步骤（代码卫生扫描、Tag、QA 冒烟确认）**必须执行**。

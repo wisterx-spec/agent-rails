@@ -3,8 +3,9 @@
 > **写入规则**：
 > - 只记录"踩坑后发现"的内容，不记录显而易见的常识
 > - 每条必须包含：根因 + 正确做法，可选：发现时间、涉及文件
-> - Agent 只能以 `[KNOWLEDGE_UPDATE]` 格式提出写入建议，由人类确认后写入
+> - 普通 Agent 只能以 `[KNOWLEDGE_UPDATE]` 格式提出写入建议；`/dream` 是受控例外，必须通过 evidence gate 后才能追加
 > - 已有条目只允许追加或修正，不允许删除
+> - 重复 lesson 不新建条目，只追加 `Additional Evidence (YYYY-MM-DD)` 证据行
 
 ---
 

@@ -38,17 +38,23 @@ git log --oneline origin/main..HEAD
 
 ---
 
-## 第三步：后端测试验证
+## 第三步：测试验证
 
-读取并执行 `.agents/skills/run-backend-tests/SKILL.md`，使用**快速子集模式**。
+读取并执行 `.agents/skills/run-tests/SKILL.md`，使用**快速子集模式**。优先执行 `project.config.json → testing.commands.fast`；缺失时才使用 run-tests 的 fallback 路由。
 
 🔴 **Blocker**：任何 `FAILED` 或 `ERROR` → 必须修复后才能继续
+
+> 前端大版本或高风险 UI 改动发版前，可追加执行 `scan-frontend-quality` 作为质量扫描；发现 P0/P1 UX 问题时需在 QA 冒烟前处理或明确豁免。
 
 ---
 
 ## 第四步：数据库差异化导出 (Incremental DB Export)
 
-读取并执行 `.agents/skills/export-db-indexes/SKILL.md`，使用内置的对比脚本提取最新数据库结构差异，强制生成 `ALTER TABLE` DDL 并附带真实查询场景（Query SQL）的完整注释。
+**条件触发**：仅当本次改动包含 ORM / migration / schema / DDL 变更，或 `capabilities.database == true` 且用户要求发版前数据库审计时执行。
+
+读取并执行 `.agents/skills/export-db-indexes/SKILL.md`，提取最新数据库结构差异，强制生成 `ALTER TABLE` DDL 并附带真实查询场景（Query SQL）的完整注释。
+
+**跳过条件**：项目无数据库能力，或本次 diff 不包含数据结构变更。
 
 🔴 **Blocker**：脚本执行报错，或未能提供含真实业务查询的注释说明 → 必须补充并交给 DBA Review。
 
@@ -58,7 +64,7 @@ git log --oneline origin/main..HEAD
 
 提示用户确认以下纯架构事项：
 
-- [ ] `models.py`（或对应 ORM 文件）变更是否符合 `db.md` 规范？
+- [ ] 数据结构变更（如有）是否符合 `db-dev-guide` 与项目内迁移约定？
 - [ ] 缓存配置是否配置或清除到位？
 - [ ] 环境变量是否已在目标环境注入？
 
@@ -108,8 +114,8 @@ git push origin --tags
 |----------------|------|
 | 代码状态        | ✅ / 🔴 |
 | 代码卫生扫描    | ✅ / 🟡 / 🔴 |
-| 后端测试        | ✅ / 🔴 |
-| 数据库增量导出  | ✅ / 🔴 (须带注释且为 ALTER 语法) |
+| 测试验证        | ✅ / 🔴 |
+| 数据库增量导出  | ✅ / 跳过 / 🔴 (须带注释且为 ALTER 语法) |
 | 基础设施确认    | ✅ / 待确认 |
 | QA 冒烟        | ✅ / 🔴 |
 

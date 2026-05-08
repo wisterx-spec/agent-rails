@@ -23,16 +23,30 @@ trigger: always_on
 | `{{TEST_PATH}}` | `tech_stack.test_path` |
 | `{{FRONTEND_TEST_PATH}}` | `tech_stack.frontend_test_path` |
 | `{{LOCAL_DB_URL}}` | `testing.local_db_url` |
+| `{{TEST_FAST_COMMAND}}` | `testing.commands.fast` |
+| `{{TEST_FULL_COMMAND}}` | `testing.commands.full` |
+| `{{FAST_MARK_EXPR}}` | `testing.fast_mode_exclude_marks` 转为 pytest 表达式，如 `slow,performance` → `not slow and not performance`；为空则省略 `-m` 参数 |
+| `{{FULL_MARK_EXPR}}` | `testing.full_mode_exclude_marks` 转为 pytest 表达式；为空则省略 `-m` 参数 |
 | `{{DESIGN_SYSTEM_FILE}}` | `design_system.reference_file` |
 | `{{SEMANTIC_COLOR_PREFIX}}` | `design_system.semantic_color_prefix` |
 | `{{OUTPUT_DIR}}` | `weekly_report.output_dir` |
 | `{{CSS_FRAMEWORK}}` | `tech_stack.css_framework` |
 | `{{BACKEND_LANG}}` | `tech_stack.backend`（取第一个词） |
+| `{{AGENT_SIGNAL_DIR}}` | `agent.signal_dir` |
+| `{{AGENT_DELIVERY_DIR}}` | `agent.delivery_dir` |
+| `{{AGENT_MANAGEMENT_DIR}}` | `agent.management_dir` |
 
-4. 推导行为开关：`affects字段启用`（`commit.affects_field_enabled`）、`前端CSS约束启用`（`css_framework == "tailwind"`）、`测试锁启用`（`testing.test_lock_script` 存在）。
+4. 推导行为开关：
+   - `前端能力启用`：`capabilities.frontend == true` 或 `tech_stack.frontend` 非空且非 `none`
+   - `后端能力启用`：`capabilities.backend == true` 或 `tech_stack.backend` 非空且非 `none`
+   - `数据库能力启用`：`capabilities.database == true` 或 `tech_stack.database` 非空且非 `none`
+   - `前端CSS约束启用`：`css_framework == "tailwind"`
+   - `测试命令已配置`：`testing.commands.fast/full` 存在且不是占位值
+   - `测试锁启用`：`testing.test_lock_script` 存在
+   - `affects字段启用`：`commit.affects_field_enabled == true`
 5. 输出：`[CONFIG LOADED] project=xxx | frontend=xxx | backend=xxx | db=xxx`
 6. **钢印审查提醒**：读取 `tmp/.last-guardrails-review`，若文件不存在或距今超过 **3 天**，输出：`[MAINTENANCE DUE] 距上次钢印审查已 N 天，建议执行 /review-guardrails`。不阻塞，仅提醒。
-6. **CRITICAL** 输出任何定稿方案后，禁止擅自进入编码模式，必须等待人类明确指令（如"开始"、"执行"）。
+7. **CRITICAL** 输出任何定稿方案后，禁止擅自进入编码模式，必须等待人类明确指令（如"开始"、"执行"）。
 
 ---
 
@@ -56,7 +70,7 @@ trigger: always_on
 - **NEVER** 使用通配符命令（如 `rm *.lock`）批量清空运行时状态。
 - **NEVER** 将测试环境连接到真实计费接口。
 - **NEVER** 带 FAILED/ERROR 测试结果提交或发版。
-- **MUST** 后端修改后强制运行 `run-backend-tests` 验证。
+- **MUST** 代码修改后按改动域运行 `run-tests --mode=fast` 或项目显式配置的等价验证命令。
 
 ### 密钥安全
 - **NEVER** 将密钥、Token、密码、证书硬编码在源代码中或提交到 git。
@@ -85,8 +99,8 @@ trigger: always_on
 
 | 改动领域 | 必读 skill |
 |---------|-----------|
-| 前端 UI 组件/样式/状态 | `frontend-dev-guide`（`.agents/skills/frontend-dev-guide/SKILL.md`） |
-| 数据库 ORM / 表结构 / 迁移 | `db-dev-guide`（`.agents/skills/db-dev-guide/SKILL.md`） |
+| 前端 UI 组件/样式/状态 | 读取 `frontend-dev-guide`（`.agents/skills/frontend-dev-guide/SKILL.md`） |
+| 数据库 ORM / 表结构 / 迁移 | 读取 `db-dev-guide`（`.agents/skills/db-dev-guide/SKILL.md`） |
 | 任何代码模块 | 先查 `docs/decisions/README.md` 索引，命中则读对应决策文件 |
 
 触碰以下领域前，查阅经验库（如存在）：
@@ -100,7 +114,9 @@ trigger: always_on
 
 - **MUST** 临时代码/诊断脚本/中间数据放入 `./tmp/`，不污染 Git。
 - **NEVER** 在 `docs/` 根目录直接新建散装文件，新增知识按语义下钻到子目录。
-- **NEVER** 自主修改 `docs/lessons/*`、`.agents/rules/*`、`docs/llm-context/*`。只允许以 `[KNOWLEDGE_UPDATE]` 格式提出建议，人类决定是否采纳。
+- **NEVER** 普通开发流程自主修改 `docs/lessons/*`、`.agents/rules/*`、`docs/llm-context/*`。普通 Agent 只允许以 `[KNOWLEDGE_UPDATE]` 格式提出建议。
+- **MAY** `/dream` 工作流在通过 evidence gate 后更新 `docs/lessons/*` 与 `docs/llm-context/*`。
+- **NEVER** 任何自动流程修改 `.agents/rules/*`；规则文件只能由人类直接编辑。
 - 代码开发必须严格套接标准流（`/auto-dev`、`/dev-flow`），禁止自造流程。
 
 ---

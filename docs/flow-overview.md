@@ -49,6 +49,10 @@ flowchart TD
 
         subgraph P3["Phase 3: Code Execution (Ralph-loop)"]
             direction TB
+            HANDOFF_CHECK{"Spec handoff?<br/>(large or delegated task)"}
+            HANDOFF_CHECK -->|Yes| WRITE_SPEC["Write spec-*<br/>to agent.signal_dir"]
+            WRITE_SPEC --> RUN_SPECS["/run-pending-specs<br/>verify-spec + session"]
+            HANDOFF_CHECK -->|No| FS_CHECK
             FS_CHECK{"Full-stack task?"}
             FS_CHECK -->|Yes| FE_FIRST["Round 1: Frontend Component-TDD"]
             FS_CHECK -->|No| RALPH
@@ -91,8 +95,9 @@ flowchart TD
         end
 
         P0 --> P1 --> P2
-        GATE_PLAN -->|Confirm| P3
+        GATE_PLAN -->|Confirm| HANDOFF_CHECK
         GATE_PLAN -->|Issue| A2_PR
+        RUN_SPECS --> A4_REPORT
         EXIT_CHECK -->|Yes| P4
         GATE_VERIFY -->|Confirm| P5
         GATE_VERIFY -->|Issue| RALPH
@@ -108,6 +113,8 @@ flowchart TD
         D3_GATE{{"🔴 Human Gate<br/>Confirm Proposal"}}
         D4["Step 4: /impact-analysis<br/>(If: API/DB/Cross-components)"]
         D5["Step 5: Test Skeleton<br/>(Routed by change type)"]
+        D55{"Step 5.5:<br/>Spec handoff?"}
+        D55_SPEC["Write spec → /run-pending-specs<br/>verify-spec + session"]
         D6["Step 6: Code Development"]
         D7["Step 7: DB Audit<br/>(If: ORM changed)"]
         D8["Step 8: Test Gate<br/>run-tests --mode fast"]
@@ -118,7 +125,9 @@ flowchart TD
         D3_CHECK -->|Yes| D4
         D3_GATE -->|Confirm| D4
         D3_GATE -->|Issue| D3
-        D4 --> D5 --> D6 --> D7 --> D8
+        D4 --> D5 --> D55
+        D55 -->|Yes| D55_SPEC --> D8
+        D55 -->|No| D6 --> D7 --> D8
         D8 -->|"❌ FAIL"| D6
         D8 -->|"✅ PASS"| D9
     end
@@ -134,6 +143,8 @@ flowchart TD
     A5_CLEAN --> PR
     D9 --> PR
     GATE_PROD -->|Confirm| DONE([Release Completed])
+    DONE --> DREAM["/dream<br/>Memory consolidation"]
+    DREAM --> PWI["/propose-workflow-improvements<br/>(optional Escrow proposals)"]
 
     %% ──────────────── STYLES ────────────────
     classDef gate fill:#ff6b6b,stroke:#c0392b,color:#fff,font-weight:bold
@@ -141,7 +152,7 @@ flowchart TD
     classDef phase fill:#f7f1e3,stroke:#aaa
 
     class GATE_SPEC,GATE_PLAN,GATE_FE,GATE_VERIFY,GATE_PROD,D3_GATE gate
-    class RC,A2_PR,FE_UX,A5_COMMIT,A5_ADR,PR,PROD,D3,D4,D8,D9 skill
+    class RC,A2_PR,FE_UX,A5_COMMIT,A5_ADR,PR,PROD,D3,D4,D8,D9,WRITE_SPEC,CODEX,RUN_SPECS,D55_SPEC,DREAM,PWI skill
 ```
 
 ## Human Gates Summary

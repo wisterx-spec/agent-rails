@@ -33,11 +33,17 @@
 | `docs/conventions.md` | 项目开发约定（活的规范，全程维护） |
 | `docs/lessons/` | 开发经验积累（血泪教训库） |
 | `docs/decisions/` | 架构决策记录（ADR，为什么这样设计） |
+| `docs/agent-runs/` | spec/session 归档与 Dream/Analyzer 管理输出 |
+| `docs/llm-context/` | Dream 维护的短上下文记忆 |
 | `tmp/` | 临时文件（不进 git） |
+| `tmp/agent-signals/` | spec、session、prereview、incident 运行信号 |
 
 ## 开发流程入口
 
 - 新功能开发 → `/dev-flow` 或 `/auto-dev [TODO]`
+- 独立执行 spec → `/run-pending-specs`
+- 记忆整合 → `/dream`
+- 流程优化提案 → `/propose-workflow-improvements`
 - 生产紧急修复 → `/hotfix [问题描述]`
 - 发版上线 → `/production-release`
 - 变更影响分析 → `/impact-analysis`

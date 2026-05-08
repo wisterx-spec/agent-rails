@@ -24,23 +24,29 @@ export TEST_DATABASE_URL='{{LOCAL_DB_URL}}'
 ### 模式一：快速子集（默认，上线前 / 日常开发）
 
 ```bash
-# 先验证测试基线（如已初始化）
-python .agents/scripts/test_lock.py verify 2>/dev/null || true
+# 先验证测试基线（如已初始化；失败必须阻断）
+python .agents/scripts/test_lock.py verify
 
-cd {{BACKEND_PATH}} && TEST_DATABASE_URL='{{LOCAL_DB_URL}}' \
-  python -m pytest tests/ -m "not {{FAST_EXCLUDE_MARKS}}" \
+PYTHONPATH="{{BACKEND_PATH}}${PYTHONPATH:+:$PYTHONPATH}" \
+TEST_DATABASE_URL='{{LOCAL_DB_URL}}' \
+  python -m pytest {{TEST_PATH}} -m "{{FAST_MARK_EXPR}}" \
   -n auto --dist=loadfile -v --tb=short --timeout=30
 ```
 
-> `{{FAST_EXCLUDE_MARKS}}` 来自 `project.config.json → testing.fast_mode_exclude_marks`（默认 `slow,performance`）
+> `{{TEST_PATH}}` 来自 `project.config.json → tech_stack.test_path`
+> `{{FAST_MARK_EXPR}}` 由 `project.config.json → testing.fast_mode_exclude_marks` 派生；例如 `slow,performance` 转为 `not slow and not performance`。为空时删除整段 `-m "{{FAST_MARK_EXPR}}"`，不要保留空 marker。
 
 **警告**：正式上线前（`/production-release`）不能排除 `integration` 集成测试。
 
 ### 模式二：全量测试
 
 ```bash
-cd {{BACKEND_PATH}} && TEST_DATABASE_URL='{{LOCAL_DB_URL}}' \
-  python -m pytest tests/ \
+# 先验证测试基线（如已初始化；失败必须阻断）
+python .agents/scripts/test_lock.py verify
+
+PYTHONPATH="{{BACKEND_PATH}}${PYTHONPATH:+:$PYTHONPATH}" \
+TEST_DATABASE_URL='{{LOCAL_DB_URL}}' \
+  python -m pytest {{TEST_PATH}} \
   -n auto --dist=loadfile -v --tb=short --timeout=30
 ```
 

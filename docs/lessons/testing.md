@@ -1,7 +1,8 @@
 # 测试开发经验积累 (Testing Lessons)
 
 > **写入规则**：只记录踩坑后发现的内容。每条包含根因 + 正确做法。
-> Agent 只能提出 `[KNOWLEDGE_UPDATE]` 建议，由人类写入。
+> 普通 Agent 只能提出 `[KNOWLEDGE_UPDATE]` 建议；`/dream` 是受控例外，必须通过 evidence gate 后才能追加。
+> 重复 lesson 不新建条目，只追加 `Additional Evidence (YYYY-MM-DD)` 证据行。
 
 ---
 

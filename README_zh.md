@@ -42,6 +42,8 @@ agent-rails 解决这个问题：
 | 上线残留 console.log，项目越来越慢 | `/slim` 全方位瘦身扫描 + 提交前 `scan-code-hygiene` 拦截 |
 | AI 幻觉：编造不存在的 API | 四条反幻觉协议 + 自我熔断机制 |
 | 规范越积越多，过期条目没人清理 | `review-guardrails` 钢印审查 + 3 天自动提醒 + 90 天过期检测 |
+| 规划者和执行者交接丢上下文 | `spec -> run-pending-specs -> verify-spec -> session` 生命周期 |
+| 跨 session 的教训沉淀不稳定 | `/dream` 读取执行信号，经 evidence gate 更新 lessons / llm-context |
 
 ---
 
@@ -106,9 +108,15 @@ Antigravity IDE、Roo Code、Cursor 等原生支持 Tool Use 的环境：
 1. 将 `.agents/rules/core.md` 内容复制到 System Prompt 或 `.cursorrules`
 2. 用自然语言触发 workflow（如"执行 auto-dev 工作流"替代 `/auto-dev`）
 
+#### Direct API（程序化接入）
+
+1. 将 `.agents/rules/core.md` 内容作为 system prompt
+2. 将目标 workflow 的 `.md` 内容拼接到 user prompt 前
+3. 确保启用文件读写、搜索、终端等 Tool Use 能力
+
 #### 不适用
 
-- 纯聊天 API（无 Tool Use）
+- 纯聊天模式（无 Tool Use）
 - GitHub Copilot（无法注入自定义规则）
 - 网页聊天界面（无项目文件访问）
 
@@ -130,21 +138,31 @@ git clone https://github.com/wisterx-spec/agent-rails.git
 ```jsonc
 {
   "project": { "name": "your-project" },
+  "capabilities": {
+    "frontend": true,
+    "backend": true,
+    "database": true
+  },
   "tech_stack": {
-    "frontend": "react+typescript",
-    "frontend_path": "frontend/src",
-    "backend": "python+fastapi",
-    "backend_path": "backend/app",
-    "test_path": "backend/tests",
-    "database": "mysql"          // mysql | sqlite | postgres
+    "frontend": "your-frontend-stack-or-none",
+    "frontend_path": "path/to/frontend/src",
+    "backend": "your-backend-stack-or-none",
+    "backend_path": "path/to/backend/src",
+    "test_path": "path/to/tests",
+    "database": "your-database-or-none",
+    "orm": "your-data-access-layer-or-none",
+    "css_framework": "your-css-framework-or-none"
   },
   "testing": {
-    "local_db_url": "mysql+pymysql://user:pass@localhost:3306/test_db"
+    "commands": {
+      "fast": "replace-with-your-fast-test-command",
+      "full": "replace-with-your-full-test-command"
+    }
   }
 }
 ```
 
-缺失字段会优雅降级，不会阻塞启动。
+安装后仍需按目标项目修改路径、数据库 URL、部署配置和团队约定。
 
 ### 3. 开始使用
 
@@ -161,7 +179,7 @@ git clone https://github.com/wisterx-spec/agent-rails.git
 ### 4. 预期输出
 
 ```
-[CONFIG LOADED] project=your-project | frontend=react+typescript | backend=python+fastapi | db=mysql
+[CONFIG LOADED] project=your-project | frontend=... | backend=... | db=...
 [MAINTENANCE DUE] 距上次钢印审查已 5 天，建议执行 /review-guardrails
 
 Phase 0: Pre-read
@@ -188,6 +206,7 @@ Phase 0: Pre-read
 方案评审 → /proposal-review（非轻量任务）→ 🔴 人工确认
     ↓
 编码执行 → Ralph-loop（Assess → Act → Verify → Log）
+    ├─ 可选：写 spec → run-pending-specs → verify-spec → session
     ├─ 全栈任务：前端 Component-TDD 先行 → 🔴 UX 人工确认 → 后端
     ├─ 自动挂载领域防线（frontend-dev-guide / db-dev-guide）
     └─ 循环直到 P0 全部解决
@@ -201,6 +220,8 @@ Phase 0: Pre-read
 /production-release → 卫生扫描 → 测试 → DDL Review → 🔴 发布确认
     ↓
 上线完成
+    ↓
+/dream → lessons / llm-context / workflow candidates
 ```
 
 详细流程图见 [`docs/flow-overview_zh.md`](docs/flow-overview_zh.md)（含 Mermaid 源码）和 [`docs/flow-overview_zh.png`](docs/flow-overview_zh.png)。
@@ -232,12 +253,13 @@ Phase 0: Pre-read
                             反幻觉协议、工程红线、域路由指令、
                             知识库保护、经验总结触发、钢印保鲜机制
 
-  workflows/              — 编排层（12 个工作流）
+  workflows/              — 编排层（13 个工作流）
     requirement-clarification.md  — 需求对齐 → 规格签收
     project-bootstrap.md          — 0→1：技术栈 → 页面地图 → 组件层级 → 约定锁定
     auto-dev.md                   — 全自动开发（Ralph-loop，支持断点恢复）
     dev-flow.md                   — 人工驱动开发
     frontend-tdd.md               — 组件 TDD + UX 评估卡点
+    dream.md                      — 基于执行信号的记忆整合
     impact-analysis.md            — 变更爆炸半径分析
     hotfix.md                     — P0 线上紧急修复
     pr-review.md                  — PR 描述 + 自审
@@ -259,7 +281,8 @@ Phase 0: Pre-read
     代码卫生： scan-code-hygiene/
     项目瘦身： scan-orphan-components/、scan-dead-routes/、scan-unused-exports/、
                scan-bundle-bloat/
-    知识管理： sync-llm-context/、record-decision/
+    Spec 交接：run-pending-specs/、verify-spec/
+    知识管理： sync-llm-context/、record-decision/、propose-workflow-improvements/
 
   hooks/
     pre-commit.sh         — 密钥检测 hook
@@ -272,11 +295,26 @@ docs/
   conventions.md          — 活的项目约定（持续维护）
   decisions/              — 架构决策记录（ADR）
   lessons/                — 项目踩坑经验（backend / frontend / testing）
+  agent-runs/             — spec/session 归档与 Dream/Analyzer 管理输出
+  llm-context/            — Dream 维护的短上下文记忆
   flow-overview_zh.md     — 完整流程图（Mermaid 源码）
   flow-overview_zh.png    — 完整流程图（图片）
 
+scripts/
+  check.sh                — 框架自检：语法、配置、skill 结构、链接
+
 project.config.json       — 项目配置（不提交）
 ```
+
+---
+
+## 框架自检
+
+```bash
+scripts/check.sh
+```
+
+发布框架改动前运行。它会检查 shell/Python 语法、`project.config.example.json`、skill 目录结构、关键旧引用、Markdown 内部链接和 test-lock 冒烟行为。
 
 ---
 
@@ -290,10 +328,14 @@ project.config.json       — 项目配置（不提交）
 | `/project-bootstrap` | 新项目架构规划 |
 | `/auto-dev [规格书]` | 全自动开发 |
 | `/auto-dev resume` | 从断点恢复 |
+| `/dev-flow` | 人工驱动的新需求开发 |
+| `/impact-analysis` | 变更爆炸半径与测试盲区分析 |
 | `/hotfix` | P0 线上紧急修复 |
 | `/pr-review` | PR 描述 + 自审 |
 | `/production-release` | 发布前检查 + 部署 |
+| `/dream` | 从 session/prereview/incident 信号沉淀项目记忆 |
 | `/slim` | 项目瘦身 |
+| `/weekly-report` | 生成 Markdown 周报和 CSV 任务表 |
 
 ### 独立技能
 
@@ -304,6 +346,9 @@ project.config.json       — 项目配置（不提交）
 | `/frontend-dev-guide` | 查看前端开发规范 |
 | `/db-dev-guide` | 查看数据库开发规范 |
 | `/generate-test-skeleton --type=api\|service\|db\|frontend` | 测试骨架 |
+| `/run-pending-specs` | 执行 pending spec 并写 session 信号 |
+| `/verify-spec` | 核查 spec 验收标准 |
+| `/propose-workflow-improvements` | 将 Dream 流程候选转成 Escrow 提案 |
 | `/export-db-indexes` | 数据库迁移 DDL |
 | `/scan-frontend-quality` | 前端质量全量扫描 |
 | `/scan-code-hygiene` | 代码卫生扫描 |
@@ -377,20 +422,44 @@ git checkout feature/A && git stash pop
 
 ```jsonc
 {
+  "project": {
+    "name": "your-project",
+    "root_path": "/path/to/project",
+    "tmp_dir": "tmp"
+  },
+  "capabilities": {
+    "frontend": true,
+    "backend": true,
+    "database": true,
+    "deploy": true
+  },
   "tech_stack": {
-    "frontend": "react+typescript",
-    "frontend_path": "frontend/src",
-    "backend": "python+fastapi",
-    "backend_path": "backend/app",
-    "test_path": "backend/tests",
-    "database": "mysql",                   // mysql | sqlite | postgres
-    "css_framework": "tailwind",           // 影响颜色约束执行
-    "frontend_test_path": "frontend/src/__tests__",
-    "frontend_extensions": ["tsx", "ts"]
+    "frontend": "your-frontend-stack-or-none",
+    "frontend_path": "path/to/frontend/src",
+    "backend": "your-backend-stack-or-none",
+    "backend_path": "path/to/backend/src",
+    "test_path": "path/to/tests",
+    "database": "your-database-or-none",
+    "orm": "your-data-access-layer-or-none",
+    "css_framework": "your-css-framework-or-none",
+    "frontend_test_path": "path/to/frontend/tests",
+    "frontend_extensions": ["tsx", "ts", "vue"]
   },
   "testing": {
     "local_db_url": "...",
-    "test_lock_script": ".agents/scripts/test_lock.py"
+    "test_lock_script": ".agents/scripts/test_lock.py",
+    "commands": {
+      "fast": "replace-with-your-fast-test-command",
+      "full": "replace-with-your-full-test-command",
+      "frontend_fast": "",
+      "backend_fast": "",
+      "lint": ""
+    }
+  },
+  "agent": {
+    "signal_dir": "tmp/agent-signals",
+    "delivery_dir": "docs/agent-runs/delivery",
+    "management_dir": "docs/agent-runs/management"
   },
   "deploy": {
     "tag_format": "v{YYYYMMDD-HHMM}-{description}",

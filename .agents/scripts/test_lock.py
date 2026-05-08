@@ -8,29 +8,89 @@ test_lock.py — 测试基线防篡改工具
   python .agents/scripts/test_lock.py status  # 查看锁定记录
 
 设计意图：
-  测试骨架一旦由人类确认，AI 在整个编码周期内严禁修改断言。
-  此脚本通过对测试目录做 SHA-256 快照，检测任何未经授权的测试文件变更。
+  测试骨架一旦由人类确认，AI 在整个编码周期内严禁修改已有断言。
+  此脚本通过对测试目录做 SHA-256 快照，检测测试文件的变更。
+
+  verify 行为：
+  - 已有文件 hash 变化（MODIFIED）→ 硬阻断，断言被篡改
+  - 新增文件（ADDED）或删除文件（REMOVED）→ 警告，不阻断（开发中正常行为）
 """
 
 import hashlib
 import json
 import sys
-import os
 from pathlib import Path
 from datetime import datetime, timezone
 
-LOCKFILE = Path(".agent-testlock.json")
+ROOT = Path(__file__).resolve().parents[2]
+LOCKFILE = ROOT / ".agent-testlock.json"
 
-# 自动检测测试目录（按优先级）
-TEST_DIRS = ["backend/tests", "tests", "test", "src/__tests__", "src/test"]
+# 配置优先，缺失时回退到常见测试目录。
+CONFIG_FILES = [ROOT / "project.config.json", ROOT / "project.config.example.json"]
+DEFAULT_TEST_DIRS = ["backend/tests", "tests", "test", "src/__tests__", "src/test"]
+TEST_FILE_PATTERNS = [
+    "**/*.py",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.test.js",
+    "**/*.test.jsx",
+    "**/*.test.mjs",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/*.spec.js",
+    "**/*.spec.jsx",
+    "**/*.spec.mjs",
+    "**/*.test.vue",
+    "**/*.spec.vue",
+]
 
 
-def find_test_dir() -> Path | None:
-    for d in TEST_DIRS:
-        p = Path(d)
-        if p.exists() and p.is_dir():
-            return p
-    return None
+def load_config() -> tuple[dict, Path | None]:
+    for path in CONFIG_FILES:
+        if not path.exists():
+            continue
+        try:
+            return json.loads(path.read_text(encoding="utf-8")), path
+        except json.JSONDecodeError as exc:
+            print(f"[ERROR] Invalid JSON in {project_relative(path)}: {exc}")
+            sys.exit(1)
+    return {}, None
+
+
+def project_relative(path: Path) -> str:
+    try:
+        return path.resolve().relative_to(ROOT).as_posix()
+    except ValueError:
+        return str(path)
+
+
+def normalize_test_dirs() -> list[Path]:
+    config, _ = load_config()
+    tech_stack = config.get("tech_stack", {}) if isinstance(config, dict) else {}
+
+    candidates = []
+    for key in ("test_path", "frontend_test_path"):
+        value = tech_stack.get(key)
+        if isinstance(value, str) and value.strip():
+            candidates.append(value.strip())
+    candidates.extend(DEFAULT_TEST_DIRS)
+
+    dirs = []
+    seen = set()
+    for raw in candidates:
+        path = Path(raw)
+        if not path.is_absolute():
+            path = ROOT / path
+        normalized = str(path.resolve())
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        dirs.append(path)
+    return dirs
+
+
+def find_test_dirs() -> list[Path]:
+    return [path for path in normalize_test_dirs() if path.exists() and path.is_dir()]
 
 
 def hash_file(path: Path) -> str:
@@ -41,43 +101,41 @@ def hash_file(path: Path) -> str:
     return sha.hexdigest()
 
 
-def collect_hashes(test_dir: Path) -> dict[str, str]:
+def collect_hashes(test_dirs: list[Path]) -> dict[str, str]:
     hashes = {}
-    patterns = ["**/*.py", "**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx",
-                "**/*.test.js", "**/*.spec.js"]
-    for pattern in patterns:
-        for f in sorted(test_dir.glob(pattern)):
-            if f.is_file():
-                rel = str(f.relative_to(Path(".")))
-                hashes[rel] = hash_file(f)
+    for test_dir in test_dirs:
+        for pattern in TEST_FILE_PATTERNS:
+            for f in sorted(test_dir.glob(pattern)):
+                if f.is_file():
+                    hashes[project_relative(f)] = hash_file(f)
     return hashes
 
 
-def cmd_lock(test_dir: Path):
-    hashes = collect_hashes(test_dir)
+def cmd_lock(test_dirs: list[Path]):
+    hashes = collect_hashes(test_dirs)
     if not hashes:
-        print(f"[WARN] No test files found in {test_dir}")
+        print(f"[WARN] No test files found in: {', '.join(project_relative(d) for d in test_dirs)}")
         sys.exit(1)
 
     data = {
         "locked_at": datetime.now(timezone.utc).isoformat(),
-        "test_dir": str(test_dir),
+        "test_dirs": [project_relative(d) for d in test_dirs],
         "file_count": len(hashes),
         "hashes": hashes,
     }
     LOCKFILE.write_text(json.dumps(data, indent=2, ensure_ascii=False))
-    print(f"[LOCKED] {len(hashes)} test files in {test_dir}")
-    print(f"         Lockfile: {LOCKFILE}")
+    print(f"[LOCKED] {len(hashes)} test files in {', '.join(data['test_dirs'])}")
+    print(f"         Lockfile: {project_relative(LOCKFILE)}")
 
 
-def cmd_verify(test_dir: Path):
+def cmd_verify(test_dirs: list[Path]):
     if not LOCKFILE.exists():
         print("[SKIP] No lockfile found — test lock not initialized. Run 'lock' first.")
         sys.exit(0)
 
-    data = json.loads(LOCKFILE.read_text())
+    data = json.loads(LOCKFILE.read_text(encoding="utf-8"))
     baseline = data["hashes"]
-    current = collect_hashes(test_dir)
+    current = collect_hashes(test_dirs)
 
     added = sorted(set(current) - set(baseline))
     removed = sorted(set(baseline) - set(current))
@@ -87,27 +145,42 @@ def cmd_verify(test_dir: Path):
         print(f"[OK] All {len(baseline)} test files match the baseline.")
         sys.exit(0)
 
-    print("[TAMPERED] Test file changes detected since last lock:")
-    for f in modified:
-        print(f"  MODIFIED  {f}")
-    for f in added:
-        print(f"  ADDED     {f}")
-    for f in removed:
-        print(f"  REMOVED   {f}")
-    print()
-    print("If these changes are intentional (new tests, not modified assertions),")
-    print("run 'lock' again to update the baseline.")
-    print("If assertions were modified to make tests pass, that violates the test contract.")
-    sys.exit(1)
+    if modified:
+        print("[TAMPERED] Existing test assertions have been modified since last lock:")
+        for f in modified:
+            print(f"  MODIFIED  {f}")
+        if added:
+            for f in added:
+                print(f"  ADDED     {f} (new file, ok — but assertions were also modified)")
+        if removed:
+            for f in removed:
+                print(f"  REMOVED   {f}")
+        print()
+        print("Modified assertions violate the test contract.")
+        print("Fix the implementation, not the test expectations.")
+        sys.exit(1)
+
+    # Only added/removed files, no existing assertions changed.
+    if added or removed:
+        print("[WARN] Test file set has changed, but no existing assertions were modified:")
+        for f in added:
+            print(f"  ADDED  {f}")
+        for f in removed:
+            print(f"  REMOVED {f}")
+        print()
+        print("New tests added or old tests removed — this is expected during development.")
+        print("Run 'lock' again after review to update the baseline.")
+        sys.exit(0)
 
 
 def cmd_status():
     if not LOCKFILE.exists():
         print("[STATUS] No lockfile — test lock not initialized.")
         return
-    data = json.loads(LOCKFILE.read_text())
+    data = json.loads(LOCKFILE.read_text(encoding="utf-8"))
+    test_dirs = data.get("test_dirs") or [data.get("test_dir", "<unknown>")]
     print(f"[STATUS] Locked at : {data['locked_at']}")
-    print(f"         Test dir  : {data['test_dir']}")
+    print(f"         Test dirs : {', '.join(test_dirs)}")
     print(f"         Files     : {data['file_count']}")
 
 
@@ -122,16 +195,21 @@ def main():
         cmd_status()
         return
 
-    test_dir = find_test_dir()
-    if test_dir is None:
-        print(f"[ERROR] Could not find test directory. Searched: {TEST_DIRS}")
-        print("        Set the correct path in TEST_DIRS at the top of this script.")
+    if cmd == "verify" and not LOCKFILE.exists():
+        cmd_verify([])
+        return
+
+    test_dirs = find_test_dirs()
+    if not test_dirs:
+        searched = ", ".join(project_relative(path) for path in normalize_test_dirs())
+        print(f"[ERROR] Could not find test directory. Searched: {searched}")
+        print("        Set tech_stack.test_path / tech_stack.frontend_test_path in project.config.json.")
         sys.exit(1)
 
     if cmd == "lock":
-        cmd_lock(test_dir)
+        cmd_lock(test_dirs)
     elif cmd == "verify":
-        cmd_verify(test_dir)
+        cmd_verify(test_dirs)
 
 
 if __name__ == "__main__":

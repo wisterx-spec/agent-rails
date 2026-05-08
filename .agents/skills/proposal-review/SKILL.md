@@ -17,8 +17,8 @@ outputs:
     description: "方案评审文档，人工确认后作为后续所有步骤的决策依据"
 standalone: true
 called_by:
-  - workflow/dev-flow (Phase 2，impact-analysis 之前)
-  - workflow/auto-dev (Phase 1，进入自驱循环之前)
+  - workflow/dev-flow (Step 3，impact-analysis 之前)
+  - workflow/auto-dev (Phase 2，进入自驱循环之前)
 ---
 
 # Proposal Review Skill

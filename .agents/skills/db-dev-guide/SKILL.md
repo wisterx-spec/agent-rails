@@ -7,7 +7,8 @@ standalone: true
 
 # 数据库开发规范 (Database Rules)
 
-> 读取 `project.config.json → tech_stack.database` 确定数据库类型，然后只读本文件中**对应的章节**，跳过其他数据库章节。
+> 读取 `project.config.json → tech_stack.database` 确定数据库类型。
+> 先读通用规则，再只读匹配的数据库章节，跳过无关章节。
 
 ---
 

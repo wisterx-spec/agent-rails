@@ -29,6 +29,13 @@ fi
 mkdir -p "$TARGET/tmp"
 echo "  [+] Ensured tmp/ directory exists"
 
+# ── 3.5. 创建 Agent 信号与治理目录 ─────────────────────────
+mkdir -p "$TARGET/tmp/agent-signals"
+mkdir -p "$TARGET/docs/agent-runs/management"
+mkdir -p "$TARGET/docs/agent-runs/delivery"
+mkdir -p "$TARGET/docs/llm-context"
+echo "  [+] Ensured agent signal and management directories"
+
 # ── 4. 添加 tmp/ 到 .gitignore ───────────────────────────
 GITIGNORE="$TARGET/.gitignore"
 if [ -f "$GITIGNORE" ]; then
@@ -103,6 +110,25 @@ if [ ! -d "$DECISIONS_DIR" ]; then
   echo "  [+] Created docs/decisions/ with README.md and _template.md"
 else
   echo "  [=] docs/decisions/ already exists, skipping."
+fi
+
+# ── 9.5. 创建 Agent 运行记录说明文件 ─────────────────────────
+AGENT_RUNS_MGMT="$TARGET_DOCS/agent-runs/management"
+LLM_CONTEXT_DIR="$TARGET_DOCS/llm-context"
+mkdir -p "$AGENT_RUNS_MGMT" "$TARGET_DOCS/agent-runs/delivery" "$LLM_CONTEXT_DIR"
+
+if [ ! -f "$AGENT_RUNS_MGMT/README.md" ]; then
+  cp "$SRC_DOCS/agent-runs/management/README.md" "$AGENT_RUNS_MGMT/README.md"
+  echo "  [+] Created docs/agent-runs/management/README.md"
+else
+  echo "  [=] docs/agent-runs/management/README.md already exists, skipping."
+fi
+
+if [ ! -f "$LLM_CONTEXT_DIR/README.md" ]; then
+  cp "$SRC_DOCS/llm-context/README.md" "$LLM_CONTEXT_DIR/README.md"
+  echo "  [+] Created docs/llm-context/README.md"
+else
+  echo "  [=] docs/llm-context/README.md already exists, skipping."
 fi
 
 # ── 10. 安装 pre-commit git hook ─────────────────────────────

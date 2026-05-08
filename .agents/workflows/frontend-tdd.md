@@ -55,7 +55,7 @@ description: 前端 TDD + UX 卡点流程。以组件为单位：先写行为测
 | 危险操作 | `点击删除时，弹出确认对话框` |
 | 危险操作 | `确认对话框取消时，不触发删除请求` |
 
-**测试框架参考**（根据 `project.config.json → tech_stack.frontend_test` 加载）：
+**测试框架参考**：优先使用 `project.config.json → testing.commands.frontend_fast`；未配置时按项目现有测试脚本执行。下方仅为示例，不代表框架默认技术栈。
 
 ```typescript
 // React + Testing Library 示例
@@ -104,7 +104,7 @@ python .agents/scripts/test_lock.py lock
 
 目标：让 Step 1 写的测试从红色变绿色。
 
-**实现过程中必须遵守的约束**（来自 `frontend-ui.md`）：
+**实现过程中必须遵守的约束**（来自 `frontend-dev-guide` 与本次规范快照）：
 - 仅当 `css_framework == "tailwind"` → 禁止物理色（`bg-blue-500`），只用语义 token
 - 所有框架均适用 → 禁止裸 hex/rgb 硬编码颜色
 - 使用项目统一组件库（弹窗、图标、EmptyState 等）
@@ -121,7 +121,7 @@ python .agents/scripts/test_lock.py lock
 ### Step 4 — 跑测试验绿 (Test Green)
 
 ```bash
-# 只跑当前组件的测试，快速验证
+# 只跑当前组件的测试，快速验证；实际命令以 project.config.json 或项目脚本为准。
 npx vitest run src/components/ItemCard.test.tsx
 # 或
 npx jest --testPathPattern="ItemCard"
@@ -216,16 +216,16 @@ Step 6：人工确认
 
 ## 与 dev-flow 的关系
 
-本流程是 `dev-flow.md` Step 4（测试骨架优先）和 Step 5（开发）在**前端 TDD 场景**下的展开版本：
+本流程是 `dev-flow.md` Step 5（测试骨架优先）、Step 6（开发）和 Step 8（测试门禁）在**前端 TDD 场景**下的展开版本：
 
 ```
-dev-flow Step 4 → 本流程 Step 1~2（按组件逐一写测试 + 锁定）
-dev-flow Step 5 → 本流程 Step 3~4（实现 + 验绿）
-dev-flow Step 5 → 本流程 Step 5~6（UX 评估 + 人工卡点）[新增]
-dev-flow Step 7 → 全部组件通过后，再跑全量测试
+dev-flow Step 5 → 本流程 Step 1~2（按组件逐一写测试 + 锁定）
+dev-flow Step 6 → 本流程 Step 3~4（实现 + 验绿）
+dev-flow Step 6 → 本流程 Step 5~6（UX 评估 + 人工卡点）
+dev-flow Step 8 → 全部组件通过后，再跑全量测试
 ```
 
-**触发条件**：在 `dev-flow` 或 `auto-dev` 中，当前任务涉及前端组件且有 UX 质量要求时，Step 4 改为触发本流程。
+**触发条件**：在 `dev-flow` 或 `auto-dev` 中，当前任务涉及前端组件且有 UX 质量要求时，dev-flow Step 5 改为触发本流程。
 
 ---
 

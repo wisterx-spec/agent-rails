@@ -20,7 +20,7 @@ outputs:
 standalone: true
 called_by:
   - workflow/auto-dev (Phase 5 收尾时，条件触发)
-  - workflow/dev-flow (Step 8 之前，条件触发)
+  - workflow/dev-flow (Step 9 前，条件触发)
 ---
 
 # Record Decision Skill

@@ -8,17 +8,30 @@
     "tmp_dir": "tmp"
   },
 
+  "agent": {
+    "signal_dir": "tmp/agent-signals",
+    "delivery_dir": "docs/agent-runs/delivery",
+    "management_dir": "docs/agent-runs/management"
+  },
+
+  "capabilities": {
+    "frontend": true,
+    "backend": true,
+    "database": true,
+    "deploy": true
+  },
+
   "tech_stack": {
-    "frontend": "react+typescript",
-    "frontend_path": "frontend/src",
-    "backend": "python+fastapi",
-    "backend_path": "backend/app",
-    "test_path": "backend/tests",
-    "database": "mysql",    "_database_options": "可选值: mysql | sqlite | postgres",
-    "orm": "sqlalchemy",
-    "css_framework": "tailwind",
-    "frontend_test_path": "frontend/src/__tests__",  "_frontend_test_path_comment": "前端测试文件根目录，用于 frontend-tdd 工作流的 test_lock.py 基线扫描",
-    "frontend_extensions": ["tsx", "ts"],  "_frontend_extensions_comment": "前端源文件扩展名，用于 scan-frontend-quality 的 grep 扫描，可选值示例: tsx|vue|jsx|svelte"
+    "frontend": "your-frontend-stack-or-none",
+    "frontend_path": "path/to/frontend/src",
+    "backend": "your-backend-stack-or-none",
+    "backend_path": "path/to/backend/src",
+    "test_path": "path/to/tests",
+    "database": "your-database-or-none",    "_database_options": "可选值示例: none | mysql | sqlite | postgres",
+    "orm": "your-data-access-layer-or-none",
+    "css_framework": "your-css-framework-or-none",
+    "frontend_test_path": "path/to/frontend/tests",  "_frontend_test_path_comment": "前端测试文件根目录，用于 frontend-tdd 工作流的 test_lock.py 基线扫描",
+    "frontend_extensions": ["tsx", "ts", "vue"],  "_frontend_extensions_comment": "前端源文件扩展名，用于 scan-frontend-quality 的 grep 扫描，可选值示例: tsx|vue|jsx|svelte"
   },
 
   "team": {
@@ -30,9 +43,16 @@
   },
 
   "testing": {
-    "local_db_url": "mysql+pymysql://root:password@127.0.0.1:3306/test_db",
+    "local_db_url": "",
     "ci_db_url": "",
     "test_lock_script": ".agents/scripts/test_lock.py",
+    "commands": {
+      "fast": "replace-with-your-fast-test-command",
+      "full": "replace-with-your-full-test-command",
+      "frontend_fast": "",
+      "backend_fast": "",
+      "lint": ""
+    },
     "fast_mode_exclude_marks": "slow,performance",
     "full_mode_exclude_marks": ""
   },

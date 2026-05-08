@@ -11,14 +11,16 @@
 |--------|---------|-------------|
 | `requirement-clarification` | `/requirement-clarification` | 内置问答逻辑（无可分拆 skill） |
 | `project-bootstrap` | `/project-bootstrap` | advise-tech-stack → plan-page-map → plan-component-hierarchy → lock-global-conventions |
-| `auto-dev` | `/auto-dev [规格书]` | requirement-clarification → dev-flow |
-| `dev-flow` | `/dev-flow` | sync-llm-context → impact-analysis → generate-test-skeleton → run-tests → export-db-indexes → commit-with-affects |
+| `auto-dev` | `/auto-dev [规格书]` | requirement-clarification → proposal-review（条件）→ Ralph-loop/dev-flow |
+| `dev-flow` | `/dev-flow` | sync-llm-context（条件）→ proposal-review（条件）→ impact-analysis（条件）→ generate-test-skeleton → run-pending-specs（可选）→ frontend-tdd（条件）→ run-tests → export-db-indexes（条件）→ commit-with-affects |
 | `frontend-tdd` | 由 dev-flow/auto-dev 触发 | generate-test-skeleton → run-tests → frontend-ux-evaluator |
+| `dream` | `/dream` | session/prereview/incident 信号 → lessons / llm-context / workflow candidates |
 | `slim` | `/slim` | scan-orphan-components → scan-dead-routes → scan-unused-exports → scan-bundle-bloat → run-tests |
 | `pr-review` | `/pr-review` | generate-pr-description → pr-self-review |
 | `hotfix` | `/hotfix` | run-tests → commit-with-affects → production-release |
 | `production-release` | `/production-release` | scan-code-hygiene → run-tests → export-db-indexes → scan-frontend-quality（可选） |
-| `impact-analysis` | 由 dev-flow 触发 | generate-test-from-impact |
+| `impact-analysis` | `/impact-analysis` 或由 dev-flow 触发 | generate-test-from-impact |
+| `git-lifecycle` | 参考规范（无独立 slash 指令） | Git 分支 / 提交 / QA / 生产发布约定 |
 | `weekly-report` | `/weekly-report` | 内置 git 查询逻辑 |
 
 ---
@@ -38,26 +40,33 @@
 
 | Skill | 触发指令 | 作用 | 被哪些工作流调用 |
 |-------|---------|------|----------------|
-| `generate-test-skeleton` | `/generate-test-skeleton --type=api\|service\|db\|frontend` | 根据接口定义生成测试骨架（Test-First） | dev-flow Step 4, frontend-tdd Step 1 |
-| `run-tests` | `/run-tests [--mode=fast\|full]` | 路由到 pytest 或 jest | dev-flow Step 7, production-release Step 3 |
+| `generate-test-skeleton` | `/generate-test-skeleton --type=api\|service\|db\|frontend` | 根据接口定义生成测试骨架（Test-First） | dev-flow Step 5, frontend-tdd Step 1 |
+| `run-tests` | `/run-tests [--mode=fast\|full]` | 优先执行 project.config.json 显式测试命令，缺失时 fallback 到 pytest 或 Jest/Vitest 等规范 | dev-flow Step 8, production-release Step 3 |
 | `run-tests/pytest` | 由 run-tests 路由 | Python pytest 执行规范 | run-tests |
 | `run-tests/jest` | 由 run-tests 路由 | Node.js Jest/Vitest 执行规范 | run-tests |
-| `run-backend-tests` *(旧)* | `/run-backend-tests` | 同 run-tests/pytest，向后兼容 | — |
+
 | `generate-test-from-impact` | 由 impact-analysis 触发 | 从 GAP 清单自动生成测试代码 | impact-analysis |
+| `verify-spec` | 由 run-pending-specs 触发 | 逐条核查 spec 验收标准，输出 ✓ / ✗→✓ / ○ 报告 | run-pending-specs |
 
 ### 数据库类
 
 | Skill | 触发指令 | 作用 | 被哪些工作流调用 |
 |-------|---------|------|----------------|
-| `export-db-indexes` | `/export-db-indexes` | 生成增量 ALTER TABLE DDL + 回滚 DDL | dev-flow Step 6, production-release Step 4 |
+| `export-db-indexes` | `/export-db-indexes` | 生成增量 ALTER TABLE DDL + 回滚 DDL | dev-flow Step 7, production-release Step 4 |
 
 ### 提交类
 
 | Skill | 触发指令 | 作用 | 被哪些工作流调用 |
 |-------|---------|------|----------------|
-| `commit-with-affects` | `/commit-with-affects` | 生成带影响面的标准化 commit message | dev-flow Step 8, auto-dev Phase 5 |
+| `commit-with-affects` | `/commit-with-affects` | 生成带影响面的标准化 commit message | dev-flow Step 9, auto-dev Phase 5 |
 | `generate-pr-description` | `/generate-pr-description [--base=main]` | 基于 git log 生成 PR 描述 | pr-review Step 1 |
 | `pr-self-review` | `/pr-self-review` | 代码质量/规范/安全/测试四维度自检 | pr-review Step 2 |
+
+### Spec 执行与委派类
+
+| Skill | 触发指令 | 作用 | 被哪些工作流调用 |
+|-------|---------|------|----------------|
+| `run-pending-specs` | `/run-pending-specs` | 扫描 pending spec，执行、验收、归档，并写 session 信号 | dev-flow Step 5.5, auto-dev Phase 3 |
 
 ### 前端质量类
 
@@ -92,6 +101,7 @@
 | Skill | 触发指令 | 作用 | 被哪些工作流调用 |
 |-------|---------|------|----------------|
 | `review-guardrails` | `/review-guardrails` | 审查 conventions/lessons/decisions/guide skills 的时效性、冲突、冗余、覆盖缺口 | slim（可选）、auto-dev Phase 5（STALE 触发时） |
+| `propose-workflow-improvements` | `/propose-workflow-improvements` | 将 Dream 的 workflow candidates 转换成 Escrow 提案 | dream 后手动触发 |
 
 ### 领域规范类（按需加载，不注入 system prompt）
 
@@ -129,6 +139,8 @@ auto-dev
         ├─► impact-analysis
         │     └─► generate-test-from-impact
         ├─► generate-test-skeleton (条件: Test-First 场景)
+        ├─► run-pending-specs     (条件: spec handoff)
+        │     └─► verify-spec
         ├─► frontend-tdd           (条件: 前端 UX 质量要求)
         │     ├─► generate-test-skeleton
         │     ├─► run-tests
@@ -159,6 +171,12 @@ hotfix
   ├─► run-tests (targeted)
   ├─► commit-with-affects
   └─► production-release
+
+dream
+  ├─► session/prereview/incident signals
+  ├─► docs/lessons + docs/llm-context
+  └─► workflow-optimization-candidates
+        └─► propose-workflow-improvements
 ```
 
 ---
@@ -177,6 +195,11 @@ hotfix
 | 只规划页面结构 | `/plan-page-map` |
 | 只规划组件层级 | `/plan-component-hierarchy` |
 | 需求确认后开始开发 | `auto-dev` |
+| 人工逐步推进开发 | `/dev-flow` |
+| 分析变更爆炸半径 | `/impact-analysis` |
+| 执行已写好的 spec | `/run-pending-specs` |
+| 从 session 信号沉淀记忆 | `/dream` |
+| 生成流程优化提案 | `/propose-workflow-improvements` |
 | 前端组件 TDD + UX 验证 | `frontend-tdd` |
 | 生成测试骨架 | `/generate-test-skeleton` |
 | 跑测试 | `/run-tests` |
@@ -196,3 +219,4 @@ hotfix
 | 记录技术决策（ADR） | `/record-decision [topic]` |
 | 生产 P0 故障 | `/hotfix` |
 | 发版上线 | `/production-release` |
+| 生成开发周报 | `/weekly-report` |

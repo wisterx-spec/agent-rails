@@ -7,7 +7,7 @@ description: 扫描 ORM 模型文件，对比线上表结构，生成增量 ALTE
 
 ## 触发时机
 
-- `dev-flow` Step 6：修改了 ORM 模型文件（如 `models.py`）后
+- `dev-flow` Step 7：修改了 ORM 模型、migration 或 schema 文件后
 - `production-release` 第四步：数据库差异化导出
 - 用户手动触发：提及"导出数据库差异"、"生成 DDL"
 
@@ -16,7 +16,7 @@ description: 扫描 ORM 模型文件，对比线上表结构，生成增量 ALTE
 ## 执行步骤
 
 ### Step 1：扫描 ORM 模型
-读取项目的 ORM 模型文件（路径来自 `project.config.json → tech_stack.backend_path`），提取：
+读取项目 ORM 模型文件（路径来自 `project.config.json → tech_stack.backend_path`），提取：
 - 所有表定义
 - 字段类型、约束、注释
 - 索引定义（包括复合索引、前缀索引）

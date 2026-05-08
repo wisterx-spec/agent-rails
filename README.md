@@ -42,6 +42,8 @@ Every workflow is composed of independent skills. Skills can also be invoked sta
 | Codebase gets messier over time | `/slim` periodic cleanup + `scan-code-hygiene` pre-commit gate |
 | AI hallucinates non-existent APIs | 4-scenario anti-hallucination protocol with self-circuit-breaker |
 | Conventions pile up, stale rules never cleaned | `review-guardrails` health audit + 3-day auto-reminder + 90-day expiry detection |
+| Planner/executor handoffs lose context | `spec -> run-pending-specs -> verify-spec -> session` lifecycle |
+| Lessons never make it across sessions | `/dream` reads execution signals and updates lessons / LLM context through an evidence gate |
 
 ---
 
@@ -137,21 +139,31 @@ Edit `project.config.json` in your target project:
 ```jsonc
 {
   "project": { "name": "your-project" },
+  "capabilities": {
+    "frontend": true,
+    "backend": true,
+    "database": true
+  },
   "tech_stack": {
-    "frontend": "react+typescript",
-    "frontend_path": "frontend/src",
-    "backend": "python+fastapi",
-    "backend_path": "backend/app",
-    "test_path": "backend/tests",
-    "database": "mysql"          // mysql | sqlite | postgres
+    "frontend": "your-frontend-stack-or-none",
+    "frontend_path": "path/to/frontend/src",
+    "backend": "your-backend-stack-or-none",
+    "backend_path": "path/to/backend/src",
+    "test_path": "path/to/tests",
+    "database": "your-database-or-none",
+    "orm": "your-data-access-layer-or-none",
+    "css_framework": "your-css-framework-or-none"
   },
   "testing": {
-    "local_db_url": "mysql+pymysql://user:pass@localhost:3306/test_db"
+    "commands": {
+      "fast": "replace-with-your-fast-test-command",
+      "full": "replace-with-your-full-test-command"
+    }
   }
 }
 ```
 
-Missing fields degrade gracefully — they won't block startup.
+Edit paths, database URLs, deploy settings, and team conventions after install.
 
 ### 3. First Command
 
@@ -168,7 +180,7 @@ Or jump straight in:
 ### 4. What to Expect
 
 ```
-[CONFIG LOADED] project=your-project | frontend=react+typescript | backend=python+fastapi | db=mysql
+[CONFIG LOADED] project=your-project | frontend=... | backend=... | db=...
 [MAINTENANCE DUE] Last guardrails review was 5 days ago. Consider running /review-guardrails
 
 Phase 0: Pre-read
@@ -195,6 +207,7 @@ Pre-read → Load config / conventions / decisions / domain skills
 Plan review → /proposal-review (non-trivial tasks) → 🔴 Human confirms
     ↓
 Execute → Ralph-loop (Assess → Act → Verify → Log)
+    ├─ Optional: write spec → run-pending-specs → verify-spec → session
     ├─ Full-stack: Frontend Component-TDD first → 🔴 UX confirmation → Backend
     ├─ Auto-mount domain guardrails (frontend-dev-guide / db-dev-guide)
     └─ Loop until all P0 issues resolved
@@ -208,6 +221,8 @@ Verification → Structured report → 🔴 Human confirms
 /production-release → Hygiene scan → Tests → DDL review → 🔴 Release confirmation
     ↓
 Live
+    ↓
+/dream → lessons / llm-context / workflow candidates
 ```
 
 Detailed flowchart: [`docs/flow-overview.md`](docs/flow-overview.md) (Mermaid source) and [`docs/flow-overview.svg`](docs/flow-overview.svg).
@@ -239,12 +254,13 @@ These scenarios skip the proposal review to reduce confirmation fatigue:
                             anti-hallucination, engineering red lines, domain routing,
                             knowledge protection, experience capture, guardrail freshness
 
-  workflows/              — Orchestration layer (12 workflows)
+  workflows/              — Orchestration layer (13 workflows)
     requirement-clarification.md  — Structured Q&A → spec sign-off
     project-bootstrap.md          — 0→1: tech stack → page map → components → conventions
     auto-dev.md                   — Fully automated dev (Ralph-loop, supports resume)
     dev-flow.md                   — Human-driven dev
     frontend-tdd.md               — Component-TDD + UX evaluation gate
+    dream.md                      — Evidence-based memory consolidation
     impact-analysis.md            — Change blast radius analysis
     hotfix.md                     — P0 production emergency fix
     pr-review.md                  — PR description + self-review
@@ -266,7 +282,8 @@ These scenarios skip the proposal review to reduce confirmation fatigue:
     Hygiene:        scan-code-hygiene/
     Cleanup:        scan-orphan-components/, scan-dead-routes/, scan-unused-exports/,
                     scan-bundle-bloat/
-    Knowledge:      sync-llm-context/, record-decision/
+    Spec handoff:   run-pending-specs/, verify-spec/
+    Knowledge:      sync-llm-context/, record-decision/, propose-workflow-improvements/
 
   hooks/
     pre-commit.sh         — Secret detection hook
@@ -279,8 +296,13 @@ docs/
   conventions.md          — Living conventions doc (maintained throughout)
   decisions/              — Architecture Decision Records (ADR)
   lessons/                — Project lessons learned (backend / frontend / testing)
+  agent-runs/             — Archived specs/sessions and Dream/Analyzer governance output
+  llm-context/            — Short high-priority memory maintained by Dream
   flow-overview.md        — Full pipeline flowchart (Mermaid source)
   flow-overview.svg       — Full pipeline flowchart (image)
+
+scripts/
+  check.sh                — Framework self-check: syntax, config, skill structure, links
 
 project.config.json       — Project config (not committed)
 ```
@@ -297,10 +319,14 @@ project.config.json       — Project config (not committed)
 | `/project-bootstrap` | New project architecture planning |
 | `/auto-dev [spec]` | Fully automated development |
 | `/auto-dev resume` | Resume from last checkpoint |
+| `/dev-flow` | Human-driven feature development |
+| `/impact-analysis` | Blast-radius and testing-gap analysis |
 | `/hotfix` | P0 production emergency fix |
 | `/pr-review` | PR description + self-review |
 | `/production-release` | Pre-release checks + deploy |
+| `/dream` | Consolidate session/prereview/incident signals into project memory |
 | `/slim` | Project cleanup + guardrail review |
+| `/weekly-report` | Generate weekly Markdown report + CSV task tracker |
 
 ### Standalone Skills
 
@@ -311,6 +337,9 @@ project.config.json       — Project config (not committed)
 | `/frontend-dev-guide` | View frontend development rules |
 | `/db-dev-guide` | View database development rules |
 | `/generate-test-skeleton --type=api\|service\|db\|frontend` | Test-First skeleton |
+| `/run-pending-specs` | Execute pending specs and write session signals |
+| `/verify-spec` | Verify spec acceptance criteria |
+| `/propose-workflow-improvements` | Turn Dream workflow candidates into Escrow proposals |
 | `/export-db-indexes` | Database migration DDL + rollback DDL |
 | `/scan-frontend-quality` | Full frontend quality scan |
 | `/scan-code-hygiene [--scope=staged\|all]` | Code hygiene scan |
@@ -384,20 +413,44 @@ git checkout feature/A && git stash pop
 
 ```jsonc
 {
+  "project": {
+    "name": "your-project",
+    "root_path": "/path/to/project",
+    "tmp_dir": "tmp"
+  },
+  "capabilities": {
+    "frontend": true,
+    "backend": true,
+    "database": true,
+    "deploy": true
+  },
   "tech_stack": {
-    "frontend": "react+typescript",
-    "frontend_path": "frontend/src",
-    "backend": "python+fastapi",
-    "backend_path": "backend/app",
-    "test_path": "backend/tests",
-    "database": "mysql",                   // mysql | sqlite | postgres
-    "css_framework": "tailwind",           // affects color convention enforcement
-    "frontend_test_path": "frontend/src/__tests__",
-    "frontend_extensions": ["tsx", "ts"]
+    "frontend": "your-frontend-stack-or-none",
+    "frontend_path": "path/to/frontend/src",
+    "backend": "your-backend-stack-or-none",
+    "backend_path": "path/to/backend/src",
+    "test_path": "path/to/tests",
+    "database": "your-database-or-none",
+    "orm": "your-data-access-layer-or-none",
+    "css_framework": "your-css-framework-or-none",
+    "frontend_test_path": "path/to/frontend/tests",
+    "frontend_extensions": ["tsx", "ts", "vue"]
   },
   "testing": {
     "local_db_url": "...",
-    "test_lock_script": ".agents/scripts/test_lock.py"
+    "test_lock_script": ".agents/scripts/test_lock.py",
+    "commands": {
+      "fast": "replace-with-your-fast-test-command",
+      "full": "replace-with-your-full-test-command",
+      "frontend_fast": "",
+      "backend_fast": "",
+      "lint": ""
+    }
+  },
+  "agent": {
+    "signal_dir": "tmp/agent-signals",
+    "delivery_dir": "docs/agent-runs/delivery",
+    "management_dir": "docs/agent-runs/management"
   },
   "deploy": {
     "tag_format": "v{YYYYMMDD-HHMM}-{description}",
@@ -475,6 +528,16 @@ Once locked, test assertions cannot be modified. If implementation breaks, fix t
 
 ---
 
+## Framework Self-Check
+
+```bash
+scripts/check.sh
+```
+
+Run this before publishing framework changes. It validates shell/Python syntax, `project.config.example.json`, skill directory shape, key stale references, Markdown internal links, and test-lock smoke behavior.
+
+---
+
 ## Knowledge Accumulation
 
 During development, the AI detects lessons at the end of each Ralph-loop iteration and surfaces proposals:
@@ -483,4 +546,4 @@ During development, the AI detects lessons at the end of each Ralph-loop iterati
 - **`[CONVENTION_PROPOSAL]`** — repeating patterns that should become conventions
 - **`[GUIDE_UPDATE]`** — experience that should be synced back to domain guide skills
 
-You decide whether to accept each proposal. The AI never writes to knowledge files without explicit human approval.
+Normal development agents only propose knowledge updates. `/dream` is the controlled exception: it may update `docs/lessons/` and `docs/llm-context/` after reading durable session/prereview/incident evidence and passing the evidence gate.
